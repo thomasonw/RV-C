@@ -398,6 +398,7 @@ bool ParseRVCPGN1FFC7(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &CVdc, 
 ////////////////   THIS IS A PROPOSED ONE!!!!!!  ???????????????????????????????
 //*****************************************************************************
 // Charger Status2 - 1FF9Dh  (PROPOSED, TEMP USING OLD BRIDGE_DGN_LIST DGN #)
+#warning CHARGER STATUS2 USING TEMP PGN#1FF9Dh 
 void SetRVCPGN1FF9D(tN2kMsg &N2kMsg, uint8_t ChrgInst, uint8_t DCInst, uint8_t DevPri, uint16_t Vdc, uint16_t Adc, uint8_t Temp) {
     N2kMsg.SetPGN(0x1FF9D);
     N2kMsg.Priority=6;
