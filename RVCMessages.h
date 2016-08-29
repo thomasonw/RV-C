@@ -1,0 +1,795 @@
+//      RVCMessages.h
+//
+//
+//      Copyright (c) 2016 by William A. Thomason.      http://arduinoalternatorregulator.blogspot.com/
+//                                                      https://github.com/thomasonw/RV-C
+//                                                        
+//                                                        
+//              For use with  NMEA2000 lib - Kave Oy, www.kave.fi/      https://github.com/ttlappalainen/NMEA2000
+//              Extends NMEA2000 lib to include RV-C messages:          http://www.rv-c.com/?q=node/75
+//
+//
+//              This program is free software: you can redistribute it and/or modify
+//              it under the terms of the GNU General Public License as published by
+//              the Free Software Foundation, either version 3 of the License, or
+//              (at your option) any later version.
+//      
+//              This program is distributed in the hope that it will be useful,
+//              but WITHOUT ANY WARRANTY; without even the implied warranty of
+//              MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//              GNU General Public License for more details.
+//      
+//              You should have received a copy of the GNU General Public License
+//              along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//
+//                  8/29/2016   Initial posting.  Contains a pending change to the current RV-C spec:
+//                      'Charger Status2' @ 1FF9Dh  (PROPOSED, TEMP USING OLD BRIDGE_DGN_LIST DGN #)
+//
+  
+
+
+#ifndef _RVCMessages_H_
+#define _RVCMessages_H_
+
+#include <N2kMsg.h>
+#include <N2kMessages.h>
+
+
+
+enum tRVCBatChrgMode  {
+                            RVCDCbcm_Undefined=0,
+                            RVCDCbcm_Disabled=1,
+                            RVCDCbcm_Bulk=2,
+                            RVCDCbcm_Absorption=3,
+                            RVCDCbcm_Overcharge=4,
+                            RVCDCbcm_Equalize=5,
+                            RVCDCbcm_Float=6,
+                            RVCDCbcm_CVCC=7,
+                            RVCDCbcm_Unknown=0xFF       /* Charge Mode is an 8-bit field - all 1's indicated undefined value in J1939 CAN standard) */
+                          };
+                          
+    
+enum tRVCChrgAlg  {
+                            RVCDCca_ConstantVoltage=0,
+                            RVCDCca_ConstantCurrent=1,
+                            RVCDCca_3Stage=2,
+                            RVCDCca_2Stage=3,
+                            RVCDCca_Trickle=4,
+                            RVCDCca_Custom2=249,
+                            RVCDCca_Custom1=250
+                          };
+                          
+                          
+enum tRVCChrgMode  {
+                            RVCDCcm_Standalone=0,
+                            RVCDCcm_Primary=1,
+                            RVCDCcm_Secondary=2,
+                            RVCDCcm_Linked=3
+                          };
+
+              
+
+
+enum tRVCChrgLine {
+                            RVCDCcl_line1 = B00,
+                            RVCDCcl_line2 = B01,
+                            RVCDCcl_na    = B11        /* Bit field - all 1's indicated undefined value in J1939 CAN standard) */
+                          };
+                          
+
+enum tRVCChrgStatus {
+                            RVCDCcs_diable = 0,
+                            RVCDCcs_enable = 1,
+                            RVCDCcs_start_equalize = 2
+                          };
+
+                          
+enum tRVCChrgForceChrg {
+                            RVCDCfc_Cancel = 0,
+                            RVCDCfc_Bulk   = 1,
+                            RVCDCfc_Float  = 2
+                          };
+
+
+
+   
+enum tRVCBatType  {
+                            RVCDCbt_Flooded=0,
+                            RVCDCbt_Gel=1,
+                            RVCDCbt_AGM=2,
+                            RVCDCbt_LiPo=3,
+                            RVCDCbt_LiFeP04=4,          /* And related variances */
+                            RVCDCbt_NiCad=5,
+                            RVCDCbt_NiMh=6,
+                            RVCDCbt_VD01=13,            /* Vender Defined types */
+                            RVCDCbt_VD02=14,
+                            RVCDCbt_Unknown=0x0F        /* Battery Type is a 4-bit field - all 1's indicated undefined value in J1939 CAN standard) */
+                          };
+                          
+  
+ enum tRVCChrgType  {
+                            RVCDCct_ACSourced=0,
+                            RVCDCct_Solar=1,
+                            RVCDCct_Wind=2,
+                            RVCDCct_Engine=3,
+                            RVCDCct_LiFeP04=4,          /* And related variances */
+                            RVCDCct_VD01=13,            /* Vender Defined types */
+                            RVCDCct_VD02=14,
+                            RVCDCct_Unknown=0x0F        /* Battery Type is a 4-bit field - all 1's indicated undefined value in J1939 CAN standard) */
+                          };
+                           
+  
+  
+enum tISOAckType  {                                     // See --> Acknowledgment - E800h
+                            ISOat_ACK=0,
+                            ISOat_NAK=1,
+                            ISOat_NotAcpt=2,
+                            ISOat_NotAllowed=3,
+                            ISOat_FormatErr=4, 
+                            ISOat_OutRange=5,
+                            ISOat_PsswdReq=6,
+                            ISOat_TimeReq=7, 
+                            ISOat_UsrOvrd=8
+                                        // 9 to 127 Reserved
+                                        // 128 to 254 Command-specific responses.
+                          };
+ 
+
+ enum tISOFMIType  {                                     // See --> ISO Failure Mode Identifier / Diagnostic Message (DM) - 1FECAh
+                            ISOfmi_DVanr=0,                     // 0 Datum value above normal range
+                            ISOfmi_DVbnr=1,                     // 1 Datum value below normal range
+                            ISOfmi_DVer=2,                      // 2 Datum value erratic or invalid
+                            ISOfmi_DVschv=3,                    // 3 Short circuit to high voltage (or complete sensor input failure)
+                            ISOfmi_DVsclv=4,                    // 4 Short circuit to low voltage (or complete sensor input failure)
+                            ISOfmi_DVoc=5,                      // 5 Open circuit, or output current below normal
+                            ISOfmi_DVgc=6,                      // 6 Grounded circuit, or output current above normal
+                            ISOfmi_DVmdnr=7,                    // 7 Mechanical device not responding
+                            ISOfmi_DVdvf=8,                     // 8 Datum value showing error of frequency, pulse width, or period
+                            ISOfmi_DVdur=9,                     // 9 Datum not updating at proper rate
+                            ISOfmi_DVdvar=10,                   // 10 Datum value fluctuating at abnormal rate
+                            ISOfmi_DVfni=11,                    // 11 Failure not identifiable
+                            ISOfmi_DVbin=12,                    // 12 Bad intelligent RV-C node
+                            ISOfmi_DVcr=13,                     // 13 Calibration required
+                            ISOfmi_DVnota=14,                   // 14 "None of the above" (use sparingly!)
+                            ISOfmi_DVdvwanr=15,                 // 15 Datum valid but above normal operational range (least severe)
+                            ISOfmi_DVdvwanrm=16,                // 16 Datum valid but above normal operational range (moderately severe)
+                            ISOfmi_DVdvwbnr=17,                 // 17 Datum valid but below normal operational range (least severe)
+                            ISOfmi_DVdvwnbrm=18,                // 18 Datum valid but below normal operational range (moderately severe)
+                            ISOfmi_DVrind=19,                   // 19 Received invalid network datum
+                            /*  20 to 30 Reserved */
+                            ISOfmi_DVna=31                      // 31 Failure mode not available
+                          };
+                          
+
+//*****************************************************************************
+// Information request - EAxxh
+// Input:
+//  - Destion Address 
+//  - Requested DGN       
+// Output:
+//  - N2kMsg                RV_C message ready to be send.
+void  SetRVCPGNEAxx(tN2kMsg &N2kMsg, uint8_t Dest, uint32_t DGNReq);
+              
+inline void SetRVCDCRequestDGN(tN2kMsg &N2kMsg, uint8_t Dest, uint32_t DGNReq) {
+   SetRVCPGNEAxx(N2kMsg, Dest, DGNReq);
+}
+
+bool ParseRVCPGNEAxx(const tN2kMsg &N2kMsg, uint8_t &Dest, uint32_t &DGNReq);
+inline bool ParseRVCRequestDGN (const tN2kMsg &N2kMsg, uint8_t &Dest, uint32_t &DGNReq) {
+  return ParseRVCPGNEAxx(N2kMsg, Dest, DGNReq);                   
+}
+                      
+
+
+
+
+//*****************************************************************************
+// DC Source Status 1 - 1FFFDh
+// Input:
+//  - Instance              DC Instance (bus) ID.  
+//  - Device Priority       Relative ranking of DC Source
+//  - DC Voltage            0..3212.5v, in 50mV steps
+//  - DC Current            -2M..+2MA, in 1mA steps (0x77359400 = 0A)
+// Output:
+//  - N2kMsg                RV_C message ready to be send.
+void SetRVCPGN1FFFD(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, uint16_t Vdc, uint32_t Adc);
+              
+inline void SetRVCDCSourceStatus1(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, uint16_t Vdc, uint32_t Adc) {
+  SetRVCPGN1FFFD(N2kMsg,Instance, DevPri, Vdc, Adc);
+}
+
+bool ParseRVCPGN1FFFD(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, uint16_t &Vdc, uint32_t &Adc);
+inline bool ParseRVCDCSourceStatus1(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, uint16_t &Vdc, uint32_t &Adc) {
+  return ParseRVCPGN1FFFD(N2kMsg,Instance, DevPri, Vdc, Adc);                   
+}
+
+
+
+//*****************************************************************************
+// DC Source Status 2 - 1FFFCh
+// Input:
+//  - Instance              DC Instance (bus) ID.  
+//  - Device Priority       Relative ranking of DC Source
+//  - Source Temperature     -273 to 1735 Deg-C  in 0.03125c steps
+//  - State of Charge       Batteries: % SOC;  DC Charging sources:  Current % output.
+//  - Time Remaining        Estimated number of minutes until SOC reaches 0% 
+// Output:
+//  - N2kMsg                RV_C message ready to be send.
+void SetRVCPGN1FFFC(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, int16_t Temp, uint8_t SOC, uint16_t TR);
+              
+inline void SetRVCDCSourceStatus2(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, int16_t Temp, uint8_t SOC, uint16_t TR) {
+  SetRVCPGN1FFFC(N2kMsg,Instance, DevPri, Temp, SOC, TR);
+}
+
+bool ParseRVCPGN1FFFC(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, int16_t &Temp, uint8_t &SOC, uint16_t &TR);
+inline bool ParseRVCDCSourceStatus2(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, int16_t &Temp, uint8_t &SOC, uint16_t &TR) {
+  return ParseRVCPGN1FFFC(N2kMsg,Instance, DevPri, Temp, SOC, TR);                   
+}
+
+
+
+
+
+//*****************************************************************************
+// DC Source Status 3 - 1FFFBh
+// Input:
+//  - Instance              DC Instance (bus) ID.  
+//  - Device Priority       Relative ranking of DC Source
+//  - State of Health       % expected remaining lifetime
+//  - Capacity Remaining    Current capacity / capability of battery in Ah
+//  - Relative Capacity     % of current capacity vs. design specified capacity. 
+//  - AC RMS Ripple         in mV
+// Output:
+//  - N2kMsg                RV_C message ready to be send.
+void SetRVCPGN1FFFB(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, uint8_t SOH, uint16_t CapRem, uint8_t CapRemPer , uint16_t Ripple);
+              
+inline void SetRVCDCSourceStatus3(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, uint8_t SOH, 
+                                                   uint16_t CapRem, uint8_t CapRemPer , uint16_t Ripple) {
+  SetRVCPGN1FFFB(N2kMsg,Instance, DevPri, SOH, CapRem, CapRemPer, Ripple);
+}
+
+bool ParseRVCPGN1FFFB(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, uint8_t &SOH, 
+                                             uint16_t &CapRem, uint8_t &CapRemPer , uint16_t &Ripple);
+inline bool ParseRVCDCSourceStatus3(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, uint8_t &SOH, 
+                                                          uint16_t &CapRem, uint8_t &CapRemPer, uint16_t &Ripple) {
+  return ParseRVCPGN1FFFB(N2kMsg,Instance, DevPri, SOH, CapRem, CapRemPer, Ripple);                   
+}
+
+
+
+//*****************************************************************************
+// DC Source Status 4 - 1FEC9h
+// Input:
+//  - Instance              DC Instance (bus) ID.  
+//  - Device Priority       Relative ranking of DC Source
+//  - Desired Charge Mode   Charging mode / state being requested.  
+//  - Desired DC Voltage    Target voltage for chargers to deliver  0..3212.5v, in 50mV steps
+//  - Desired DC Current    Target current for all chargers to deliver combined  -1600A..1612.5A, in 50mA steps (0x7D00 = 0A)
+//  - Battery Type          
+// Output:
+//  - N2kMsg                RV_C message ready to be send.
+void SetRVCPGN1FEC9(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, tRVCBatChrgMode DesCM, uint16_t DesVolt, uint16_t DesAmp , tRVCBatType BatType);
+              
+inline void SetRVCDCSourceStatus4(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri,  tRVCBatChrgMode DesCM, uint16_t DesVolt, uint16_t DesAmp , tRVCBatType BatType) {
+  SetRVCPGN1FEC9(N2kMsg,Instance, DevPri, DesCM, DesVolt, DesAmp, BatType);
+}
+
+bool ParseRVCPGN1FEC9(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri,  tRVCBatChrgMode &DesCM, uint16_t &DesVolt, uint16_t &DesAmp , tRVCBatType &BatType);
+inline bool ParseRVCDCSourceStatus4(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, tRVCBatChrgMode &DesCM, uint16_t &DesVolt, uint16_t &DesAmp , tRVCBatType &BatType) {
+  return ParseRVCPGN1FEC9(N2kMsg,Instance, DevPri, DesCM, DesVolt, DesAmp, BatType);                   
+}
+
+
+
+
+
+//*****************************************************************************
+// DC Source Status 5 - 1FEC8h
+// Input:
+//  - Instance              DC Instance (bus) ID.  
+//  - Device Priority       Relative ranking of DC Source
+//  - DC Voltage            High precision value in 1mV.  Useful for remote instrumentation  
+//  - VDC ROC               Rate-of-change (dV/dT) in mV/s  -- 32000 = 0 mV/s
+// Output:
+//  - N2kMsg                RV_C message ready to be send.
+void SetRVCPGN1FEC8(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, uint32_t Vdc,  uint16_t dVdT);
+              
+inline void SetRVCDCSourceStatus5(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, uint32_t Vdc,  uint16_t dVdT) {
+  SetRVCPGN1FEC8(N2kMsg,Instance, DevPri, Vdc, dVdT);
+}
+
+bool ParseRVCPGN1FEC8(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri,  uint32_t &Vdc,  uint16_t &dVdT);
+inline bool ParseRVCDCSourceStatus5(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, uint32_t &Vdc,  uint16_t &dVdT) {
+  return ParseRVCPGN1FEC8(N2kMsg,Instance, DevPri, Vdc, dVdT);                   
+}
+
+
+
+
+
+//*****************************************************************************
+// DC Source Status 6 - 1FEC7h
+// Input:
+//  - Instance              DC Instance (bus) ID.  
+//  - Device Priority       Relative ranking of DC Source
+//  - HV Limit Status       Reached upper operational voltage range?
+//  - HV Limit Disconnect   Safety disconnect?
+//  - LV Limit Status       Reached lower operational voltage range?
+//  - LV Limit Disconnect   Safety disconnect?
+// Output:
+//  - N2kMsg                RV_C message ready to be send.
+void SetRVCPGN1FEC7(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, bool HVls, bool HVld, bool LVls, bool LVld);
+              
+inline void SetRVCDCSourceStatus6(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, bool HVls, bool HVld, bool LVls, bool LVld) {
+  SetRVCPGN1FEC7(N2kMsg,Instance, DevPri, HVls, HVld, LVls, LVld);
+}
+
+bool ParseRVCPGN1FEC7(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri,  
+                       bool &HVls, bool &HVld, bool &LVls, bool &LVld);
+inline bool ParseRVCDCSourceStatus6(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, bool &HVls, bool &HVld, bool &LVls, bool &LVld) {
+  return ParseRVCPGN1FEC7(N2kMsg,Instance, DevPri, HVls, HVld, LVls, LVld);                   
+}
+
+
+
+
+//*****************************************************************************
+// DC Disconnect Status - 1FED0h
+// Input:
+//  - Instance                      DC Instance (bus) ID.  
+//  - Circuit Connected             Is Circuit currently connected? 
+//  - Received Disconect Command    Was the last command received to disconnect?    
+//  - Bypass Detected               Has an external bypass occurred? 
+// Output:
+//  - N2kMsg                        RV_C message ready to be send.
+void SetRVCPGN1FED0(tN2kMsg &N2kMsg, uint8_t Instance, bool CirCon, bool RecDisCom, bool Bypassed);
+              
+inline void SetRVCDCDisconnectStatus(tN2kMsg &N2kMsg, uint8_t Instance, bool CirCon, bool RecDisCom, bool Bypassed) {
+  SetRVCPGN1FED0(N2kMsg,Instance, CirCon, RecDisCom, Bypassed);
+}
+
+bool ParseRVCPGN1FED0(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &CirCon, bool &RecDisCom, bool &Bypassed);
+inline bool ParseRVCDCDisconnectStatus(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &CirCon, bool &RecDisCom, bool &Bypassed) {
+  return ParseRVCPGN1FED0(N2kMsg,Instance, CirCon, RecDisCom, Bypassed);                   
+}
+
+
+
+
+
+
+//*****************************************************************************
+// DC Disconnect Command - 1FECFh
+// Input:
+//  - Instance              DC Instance (bus) ID.  
+//  - DisCmd                Command to Disconnect (False = command to connect)
+// Output:
+//  - N2kMsg                RV_C message ready to be send.
+void SetRVCPGN1FECF(tN2kMsg &N2kMsg, uint8_t Instance, bool DisCmd);
+              
+inline void SetRVCDCDisconnectCommand(tN2kMsg &N2kMsg, uint8_t Instance, bool DisCmd) {
+  SetRVCPGN1FECF(N2kMsg,Instance,DisCmd);
+}
+
+bool ParseRVCPGN1FECF(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &DisCmd);
+inline bool ParseRVCDCDisconnectCommand(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &DisCmd) {
+  return ParseRVCPGN1FECF(N2kMsg,Instance,DisCmd);                   
+}
+
+
+
+
+
+
+
+
+
+//*****************************************************************************
+// Charger Status - 1FFC7h
+// Input:
+//  - Instance
+//  - Charge Voltage                0..3212.5v, in 50mV steps
+//  - Charge Current                -2M..+2MA, in 1mA steps (0x77359400 = 0A)
+//  - % max current
+//  - Operating State               (Bulk, float, etc)
+//  - Default PO state
+//  - Auto Recharge
+//  - Force Charged 
+// Output:
+//  - N2kMsg                        RV_C message ready to be send.
+void SetRVCPGN1FFC7(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t CVdc, uint16_t CAdc, uint8_t PerMax,
+                    tRVCBatChrgMode State, bool EnableAtPO, bool AutoRechg, tRVCChrgForceChrg ForcedChrg);
+              
+inline void SetRVCChargerStatus(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t CVdc, uint16_t CAdc, uint8_t PerMax,
+                                  tRVCBatChrgMode State, bool EnableAtPO, bool AutoRechg, tRVCChrgForceChrg ForcedChrg) {
+  SetRVCPGN1FFC7(N2kMsg,Instance,CVdc,CAdc,PerMax,State,EnableAtPO,AutoRechg,ForcedChrg);
+}
+
+bool ParseRVCPGN1FFC7(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &CVdc, uint16_t &CAdc, uint8_t &PerMax,
+                            tRVCBatChrgMode &State, bool &EnableAtPO, bool &AutoRechg, tRVCChrgForceChrg &ForcedChrg);
+inline bool ParseRVCChargerStatus(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &CVdc, uint16_t &CAdc, uint8_t &PerMax,
+                            tRVCBatChrgMode &State, bool &EnableAtPO, bool &AutoRechg, tRVCChrgForceChrg &ForcedChrg) {
+  return ParseRVCPGN1FFC7(N2kMsg,Instance,CVdc,CAdc,PerMax,State,EnableAtPO,AutoRechg,ForcedChrg);                   
+}
+
+
+
+////////////////   THIS IS A PROPOSED ONE!!!!!!  ???????????????????????????????
+//*****************************************************************************
+// Charger Status2 - 1FF9Dh  (PROPOSED, TEMP USING OLD BRIDGE_DGN_LIST DGN #)
+// Input:
+//  - Instance              Instance of charger
+//  - DC Source Instance    DC Instance (bus) ID associated with
+//  - Device Priority       Relative ranking of DC charging Source
+//  - DC Voltage            0..3212.5v, in 50mV steps
+//  - DC Current            -1600..1612.5a, in 50mA steps (0x7D00 = 0A)
+//  - Temperature           -40..210 in deg-C, in 1C steps
+// Output:
+//  - N2kMsg                        RV_C message ready to be send.
+void SetRVCPGN1FF9D(tN2kMsg &N2kMsg, uint8_t ChrgInst, uint8_t DCInst, uint8_t DevPri, uint16_t Vdc, uint16_t Adc, uint8_t Temp);
+              
+inline void SetRVCChargerStatus2(tN2kMsg &N2kMsg, uint8_t ChrgInst, uint8_t DCInst, uint8_t DevPri, uint16_t Vdc, uint16_t Adc, uint8_t Temp) {
+  SetRVCPGN1FF9D(N2kMsg,ChrgInst,DCInst,DevPri,Vdc,Adc,Temp);
+}
+
+bool ParseRVCPGN1FF9D(const tN2kMsg &N2kMsg, uint8_t &ChrgInst, uint8_t &DCInst, uint8_t &DevPri, uint16_t &Vdc, uint16_t &Adc, uint8_t &Temp);
+inline bool ParseRVCChargerStatus2(const tN2kMsg &N2kMsg, uint8_t &ChrgInst, uint8_t &DCInst, uint8_t &DevPri, uint16_t &Vdc, uint16_t &Adc, uint8_t &Temp) {
+  return ParseRVCPGN1FF9D(N2kMsg,ChrgInst,DCInst,DevPri,Vdc,Adc,Temp);                   
+}
+                   
+                                 
+
+//*****************************************************************************
+// Charger Command - 1FFC5h
+// Input:
+//  - Instance
+//  - Status
+//  - Default PO state
+//  - Auto Recharge
+//  - Force Charged  
+// Output:
+//  - N2kMsg                RV_C message ready to be send.
+void SetRVCPGN1FFC5(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgStatus ChrgStat,  
+                       bool EnableAtPO, bool AutoRechg, tRVCChrgForceChrg ForcedChrg);
+              
+inline void SetRVCChargerCommand(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgStatus ChrgStat,  
+                                            bool EnableAtPO, bool AutoRechg, tRVCChrgForceChrg ForcedChrg) {
+  SetRVCPGN1FFC5(N2kMsg,Instance,ChrgStat,EnableAtPO,AutoRechg,ForcedChrg);
+}
+
+bool ParseRVCPGN1FFC5(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgStatus &ChrgStat, 
+                                            bool &EnableAtPO, bool &AutoRechg, tRVCChrgForceChrg &ForcedChrg);
+inline bool ParseRVCChargerCommand(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgStatus &ChrgStat,  
+                                            bool &EnableAtPO, bool &AutoRechg, tRVCChrgForceChrg &ForcedChrg) {
+  return ParseRVCPGN1FFC5(N2kMsg,Instance,ChrgStat,EnableAtPO,AutoRechg,ForcedChrg);                 
+}
+
+
+
+//*****************************************************************************
+// Charger Configuration Status - 1FFC6h
+// Input:
+//  - Instance
+//  - Charging Algorithum  
+//  - Controller Mode
+//  - Battery Sensor Present
+//  - Charger AC Line          Line 1 or 2 (AC Chargers only)
+//  - Linkage Mode
+//  - Battery Type
+//  - Battery Bank Size         0..65,530 Ah, 1Ah increments
+//  - Maximum charging current  0..250, 1A increments
+// Output:
+//  - N2kMsg                    RV_C message ready to be send.
+void SetRVCPGN1FFC6(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tRVCChrgMode  ChrgMode, 
+                       bool BatSense, tRVCChrgLine Line, bool Linked, tRVCBatType BatType,  uint16_t BatSize, uint8_t MaxAmps);
+              
+inline void SetRVCChargerConfigStatus(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tRVCChrgMode  ChrgMode, 
+                    bool BatSense, tRVCChrgLine Line, bool Linked, tRVCBatType BatType,  uint16_t BatSize, uint8_t MaxAmps) {
+  SetRVCPGN1FFC6(N2kMsg,Instance,ChrgAlg,ChrgMode,BatSense,Line,Linked,BatType,BatSize,MaxAmps);
+}
+
+bool ParseRVCPGN1FFC6(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgAlg  &ChrgAlg,  tRVCChrgMode  &ChrgMode, 
+                               bool &BatSense, tRVCChrgLine &Line, bool &Linked, tRVCBatType &BatType,  uint16_t &BatSize, uint8_t &MaxAmps);
+inline bool ParseRVCChargerConfigStatus(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgAlg &ChrgAlg,  tRVCChrgMode &ChrgMode, 
+                                         bool &BatSense, tRVCChrgLine &Line, bool &Linked, tRVCBatType &BatType,  uint16_t &BatSize, uint8_t &MaxAmps) {
+  return ParseRVCPGN1FFC6(N2kMsg,Instance,ChrgAlg,ChrgMode,BatSense,Line,Linked,BatType,BatSize,MaxAmps);                   
+}
+
+
+//*****************************************************************************
+// Charger Configuration Status2 - 1FF96h
+// Input:
+//  - Instance
+//  - Max Charge Current %
+//  - Max AC current %          Of attached line      (AC Chargers only) 
+//  - Shore Breaker Size        0..250, 1A increments (AC Chargers only)
+//  - Default Batt Temp
+//  - Recharge Voltage           0..3212.5v, in 50mV steps
+// Output:
+//  - N2kMsg                    RV_C message ready to be send.
+void SetRVCPGN1FF96(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t PerMaxAmps, uint8_t PerMaxShore, uint8_t ShorBr, uint8_t DefBatTemp, uint16_t RchgVolt);
+              
+inline void SetRVCChargerConfigStatus2(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t PerMaxAmps, uint8_t PerMaxShore, uint8_t ShorBr, uint8_t DefBatTemp, uint16_t RchgVolt) {
+  SetRVCPGN1FF96(N2kMsg,Instance,PerMaxAmps,PerMaxShore,ShorBr,DefBatTemp,RchgVolt);
+}
+
+bool ParseRVCPGN1FF96(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxShore, uint8_t &ShorBr, uint8_t &DefBatTemp, uint16_t &RchgVolt);
+inline bool ParseRVCChargerConfigStatus2(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &ShorBr, uint8_t &PerMaxShore, uint8_t &DefBatTemp, uint16_t &RchgVolt) {
+  return ParseRVCPGN1FF96(N2kMsg,Instance,PerMaxAmps,PerMaxShore,ShorBr,DefBatTemp,RchgVolt);                   
+}
+
+
+//*****************************************************************************
+// Charger Configuration Status3 - 1FECCh
+// Input:
+//  - Instance
+//  - Bulk Voltage           0..3212.5v, in 50mV steps
+//  - Absorption Voltage     0..3212.5v, in 50mV steps
+//  - Float Voltage          0..3212.5v, in 50mV steps
+//  - Temp Comp              mV/K
+// Output:
+//  - N2kMsg                 RV_C message ready to be send.
+void SetRVCPGN1FECC(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkV, uint16_t AbsorbV, uint16_t FloatV, uint8_t TempComp);
+              
+inline void SetRVCChargerConfigStatus3(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkV, uint16_t AbsorbV, uint16_t FloatV, uint8_t TempComp) {
+  SetRVCPGN1FECC(N2kMsg,Instance,BulkV,AbsorbV,FloatV,TempComp);
+}
+
+bool ParseRVCPGN1FECC(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkV, uint16_t &AbsorbV, uint16_t &FloatV, uint8_t &TempComp);
+inline bool ParseRVCChargerConfigStatus3(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkV, uint16_t &AbsorbV, uint16_t &FloatV, uint8_t &TempComp) {
+  return ParseRVCPGN1FECC(N2kMsg,Instance,BulkV,AbsorbV,FloatV,TempComp);                   
+}
+
+
+//*****************************************************************************
+// Charger Configuration Status4 - 1FEBFh
+// Input:
+//  - Instance
+//  - Bulk Time           0..65,530min in 1min steps
+//  - Absorption Time     0..65,530min in 1min steps
+//  - Float Time          0..65,530min in 1min steps
+// Output:
+//  - N2kMsg                 RV_C message ready to be send.
+void SetRVCPGN1FEBF(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkT, uint16_t AbsorbT, uint16_t FloatT);
+              
+inline void SetRVCChargerConfigStatus4(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkT, uint16_t AbsorbT, uint16_t FloatT) {
+  SetRVCPGN1FEBF(N2kMsg,Instance,BulkT,AbsorbT,FloatT);
+}
+
+bool ParseRVCPGN1FEBF(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkT, uint16_t &AbsorbT, uint16_t &FloatT);
+inline bool ParseRVCChargerConfigStatus4(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkT, uint16_t &AbsorbT, uint16_t &FloatT) {
+  return ParseRVCPGN1FEBF(N2kMsg,Instance,BulkT,AbsorbT,FloatT);                   
+}
+
+
+//*****************************************************************************
+// Charger Configuration Command - 1FFC4h
+// Input:
+//  - Instance
+//  - Charging Algorithm  
+//  - Controller Mode
+//  - Battery Sensor Present
+//  - Charger AC Line          Line 1 or 2 (AC Chargers only)
+//  - Linkage Mode
+//  - Battery Bank Size         0..65,530 Ah, 1Ah increments
+//  - Battery Type
+//  - Maximum charging current  0..250, 1A increments
+// Output:
+//  - N2kMsg                    RV_C message ready to be send.
+void SetRVCPGN1FFC4(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tRVCChrgMode  ChrgMode, 
+                       bool BatSense, tRVCChrgLine Line, bool Linked,  tRVCBatType BatType,  uint16_t BatSize, uint8_t MaxAmps);
+              
+inline void SetRVCChargerConfigCommand(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tRVCChrgMode  ChrgMode, 
+                    bool BatSense, tRVCChrgLine Line, bool Linked,  tRVCBatType BatType,  uint16_t BatSize, uint8_t MaxAmps) {
+  SetRVCPGN1FFC4(N2kMsg,Instance,ChrgAlg,ChrgMode,BatSense,Line, Linked,BatType,BatSize,MaxAmps);
+}
+
+bool ParseRVCPGN1FFC4(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgAlg  &ChrgAlg,  tRVCChrgMode  &ChrgMode, 
+                               bool &BatSense, tRVCChrgLine &Line, bool &Linked,  tRVCBatType &BatType,  uint16_t &BatSize, uint8_t &MaxAmps);
+inline bool ParseRVCChargerConfigCommand(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgAlg  &ChrgAlg,  tRVCChrgMode  &ChrgMode, 
+                                         bool &BatSense, tRVCChrgLine &Line, bool &Linked,  tRVCBatType &BatType,  uint16_t &BatSize, uint8_t &MaxAmps) {
+  return ParseRVCPGN1FFC4(N2kMsg,Instance,ChrgAlg,ChrgMode,BatSense,Line, Linked,BatType,BatSize,MaxAmps);                   
+}
+
+
+//*****************************************************************************
+// Charger Configuration Command2 - 1FF95h
+// Input:
+//  - Instance
+//  - Max Charge Current %
+//  - Max AC current %          Of attached line      (AC Chargers only) 
+//  - Shore Breaker Size        0..250, 1A increments (AC Chargers only)
+//  - Default Batt Temp
+//  - Recharge Voltage           0..3212.5v, in 50mV steps
+// Output:
+//  - N2kMsg                     RV_C message ready to be send.
+void SetRVCPGN1FF95(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t PerMaxAmps, uint8_t PerMaxShore, uint8_t DefBatTemp, uint16_t RchgVolt);
+              
+inline void SetRVCChargerConfigCommand2(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t PerMaxAmps, uint8_t PerMaxShore, uint8_t DefBatTemp, uint16_t RchgVolt) {
+  SetRVCPGN1FF95(N2kMsg,Instance,PerMaxAmps,PerMaxShore,DefBatTemp,RchgVolt);
+}
+
+bool ParseRVCPGN1FF95(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxShore, uint8_t &DefBatTemp, uint16_t &RchgVolt);
+inline bool ParseRVCChargerConfigCommand2(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxShore, uint8_t &DefBatTemp, uint16_t &RchgVolt) {
+  return ParseRVCPGN1FF95(N2kMsg,Instance,PerMaxAmps,PerMaxShore,DefBatTemp,RchgVolt);                   
+}
+
+
+
+//*****************************************************************************
+// Charger Configuration Command3 - 1FECBh
+// Input:
+//  - Instance
+//  - Bulk Voltage           0..3212.5v, in 50mV steps
+//  - Absorption Voltage     0..3212.5v, in 50mV steps
+//  - Float Voltage          0..3212.5v, in 50mV steps
+//  - Temp Comp              mV/K
+// Output:
+//  - N2kMsg                 RV_C message ready to be send.
+void SetRVCPGN1FECB(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkV, uint16_t AbsorbV, uint16_t FloatV, uint8_t TempComp);
+              
+inline void SetRVCChargerConfigCommand3(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkV, uint16_t AbsorbV, uint16_t FloatV, uint8_t TempComp) {
+  SetRVCPGN1FECB(N2kMsg,Instance,BulkV,AbsorbV,FloatV,TempComp);
+}
+
+bool ParseRVCPGN1FECB(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkV, uint16_t &AbsorbV, uint16_t &FloatV, uint8_t &TempComp);
+inline bool ParseRVCChargerConfigCommand3(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkV, uint16_t &AbsorbV, uint16_t &FloatV, uint8_t &TempComp) {
+  return ParseRVCPGN1FECB(N2kMsg,Instance,BulkV,AbsorbV,FloatV,TempComp);                   
+}
+
+
+//*****************************************************************************
+// Charger Configuration Command4 - 1FEBEh
+// Input:
+//  - Instance
+//  - Bulk Time             0..65,530min in 1min steps
+//  - Absorption Time       0..65,530min in 1min steps
+//  - Float Time            0..65,530min in 1min steps
+// Output:
+//  - N2kMsg                 RV_C message ready to be send.
+void SetRVCPGN1FEBE(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkT, uint16_t AbsorbT, uint16_t FloatT);
+              
+inline void SetRVCChargerConfigCommand4(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkT, uint16_t AbsorbT, uint16_t FloatT) {
+  SetRVCPGN1FEBE(N2kMsg,Instance,BulkT,AbsorbT,FloatT);
+}
+
+bool ParseRVCPGN1FEBE(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkT, uint16_t &AbsorbT, uint16_t &FloatT);
+inline bool ParseRVCChargerConfigCommand4(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkT, uint16_t &AbsorbT, uint16_t &FloatT) {
+  return ParseRVCPGN1FEBE(N2kMsg,Instance,BulkT,AbsorbT,FloatT);                   
+}
+
+
+//*****************************************************************************
+// Charger Equalization Status - 1FF99h
+// Input:
+//  - Instance
+//  - Time Remaining            0..65,530min in 1min steps
+//  - Pre-Charging
+// Output:
+//  - N2kMsg                    RV_C message ready to be send.
+void SetRVCPGN1FF99(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Time, bool PreChrg);
+              
+inline void SetRVCChargerEqualStatus(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Time, bool PreChrg) {
+  SetRVCPGN1FF99(N2kMsg,Instance,Time,PreChrg);
+}
+
+bool ParseRVCPGN1FF99(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &Time, bool &PreChrg);
+inline bool ParseRVCChargerEqualStatus(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &Time, bool &PreChrg) {
+  return ParseRVCPGN1FF99(N2kMsg,Instance,Time,PreChrg);
+}
+
+
+//*****************************************************************************
+// Charger Equalization Configuration Status - 1FF98h
+// Input:
+//  - Instance
+//  - Equalization Voltage      0..3212.5v, in 50mV steps
+//  - Equalization Time         0..65,530min in 1min steps
+// Output:
+//  - N2kMsg                    RV_C message ready to be send.
+void SetRVCPGN1FF98(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Volts, uint16_t Time);
+              
+inline void SetRVCChargerEqualConfigStatus(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Volts, uint16_t Time) {
+  SetRVCPGN1FF98(N2kMsg,Instance,Volts,Time);
+}
+
+bool ParseRVCPGN1FF98(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &Volts, uint16_t &Time);
+inline bool ParseRVCChargerEqualConfigStatus(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &Volts, uint16_t &Time) {
+  return ParseRVCPGN1FF98(N2kMsg,Instance,Volts,Time);
+}
+
+
+
+//*****************************************************************************
+// Charger Equalization Configuration Command - 1FF97h
+// Input:
+//  - Instance
+//  - Equalization Voltage      0..3212.5v, in 50mV steps
+//  - Equalization Time         0..65,530min in 1min steps
+// Output:
+//  - N2kMsg                    RV_C message ready to be send.
+void SetRVCPGN1FF97(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Volts, uint16_t Time);
+              
+inline void SetRVCChargerEqualConfigStatusCommand(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Volts, uint16_t Time) {
+  SetRVCPGN1FF97(N2kMsg,Instance,Volts,Time);
+}
+
+bool ParseRVCPGN1FF97(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &Volts, uint16_t &Time);
+inline bool ParseRVCChargerEqualConfigCommand(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &Volts, uint16_t &Time) {
+  return ParseRVCPGN1FF97(N2kMsg,Instance,Volts,Time);
+}
+
+
+
+
+
+//*****************************************************************************
+// Terminal - 17E00h
+// Input:
+//  - Source / Destination
+//  - Count                     0..8
+//  - Characters                Buffer with up to 8 characters
+// Output:
+//  - N2kMsg                    RV_C message ready to be send.
+void SetRVCPGN17E00(tN2kMsg &N2kMsg, uint8_t Destination, int Count, char *Characters);
+
+              
+inline void SetRVCPGNTerminal(tN2kMsg &N2kMsg, uint8_t Destination, int Count, char *Characters) {
+  SetRVCPGN17E00(N2kMsg,Destination,Count,Characters);
+}
+
+bool ParseRVCPGN17E00(const tN2kMsg &N2kMsg, uint8_t &Source, int &Count, char Characters[8]);
+
+inline bool ParseRVCPGNTerminal(const tN2kMsg &N2kMsg, uint8_t &Source, int &Count, char Characters[8]) {
+  return ParseRVCPGN17E00(N2kMsg,Source,Count,Characters);
+}
+
+
+
+
+
+
+
+
+//*****************************************************************************
+// ISO Diagnostics Message - 1FECAh
+// Input:
+//  - On / Off
+//  - Active / Standby
+//  - DSA                       Default Source Address (Standard fault codes) 
+//  - SPN                       Service Point Number  (Device Specific)
+//  - FMI                       Failure Mode Identifier      
+//  - Occurrence Count
+//  - DSA Extension
+//  - Bank Select
+// Output:
+//  - N2kMsg                    RV_C message ready to be send.
+void SetISOPGN1FECA(tN2kMsg &N2kMsg, bool On, bool Active, bool Red, bool Yellow,  uint8_t DSA,
+                    uint32_t SPN, tISOFMIType FMI, uint8_t Count, uint8_t DSA_ext, uint8_t Bank);
+              
+inline void SetISODiagnosticsMessage(tN2kMsg &N2kMsg, bool On, bool Active, bool Red, bool Yellow, uint8_t DSA, 
+                          uint32_t SPN, tISOFMIType FMI, uint8_t Count, uint8_t DSA_ext, uint8_t Bank) {
+  SetISOPGN1FECA(N2kMsg,On,Active,Red,Yellow,DSA,SPN,FMI,Count,DSA_ext,Bank);
+}
+
+bool ParseISOPGN1FECA(const tN2kMsg &N2kMsg, bool &On, bool &Active, bool &Red, bool &Yellow,  uint8_t &DSA,
+                            uint32_t &SPN, tISOFMIType &FMI, uint8_t &Count, uint8_t &DSA_ext, uint8_t &Bank);
+
+inline bool ParseISODiagnosticsMessage(const tN2kMsg &N2kMsg, bool &On, bool &Active, bool &Red, bool &Yellow,  uint8_t &DSA,
+                            uint32_t &SPN, tISOFMIType &FMI, uint8_t &Count, uint8_t &DSA_ext, uint8_t &Bank) {
+  return ParseISOPGN1FECA(N2kMsg,On,Active,Red,Yellow,DSA,SPN,FMI,Count,DSA_ext,Bank);
+}
+
+
+
+
+
+
+
+
+
+
+
+#endif  //_RVCMessages_H_
+
