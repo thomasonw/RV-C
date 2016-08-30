@@ -187,7 +187,7 @@ void SetRVCPGN1FEC9(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri,
     N2kMsg.AddByte((unsigned char)DesCM);
     N2kMsg.Add2ByteUInt(DesVolt);
     N2kMsg.Add2ByteUInt(DesAmps);
-    N2kMsg.AddByte((unsigned char)BatType || 0xf0);                        /* Unused bits must be set to 1's */
+    N2kMsg.AddByte((unsigned char)BatType | 0xf0);                        /* Unused bits must be set to 1's */
 }
 
 bool ParseRVCPGN1FEC9(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri,  
@@ -201,7 +201,7 @@ bool ParseRVCPGN1FEC9(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri,
   DesCM=(tRVCBatChrgMode)N2kMsg.GetByte(Index);
   DesVolt=N2kMsg.Get2ByteUInt(Index);
   DesAmp=N2kMsg.Get2ByteUInt(Index);  
-  BatType=(tRVCBatType)(N2kMsg.GetByte(Index) && 0x0f);        /* Mask out lower 4 bits */
+  BatType=(tRVCBatType)(N2kMsg.GetByte(Index) & 0x0f);              /* Mask out lower 4 bits */
     
   return true;
 }
@@ -272,10 +272,10 @@ bool ParseRVCPGN1FEC7(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri,
   DevPri=N2kMsg.GetByte(Index);
   flag=N2kMsg.GetByte(Index);
     
-  HVls   = (flag && 0x03   ) == 0x01;  
-  HVld   = (flag && 0x03<<2) == 0x01<<2; 
-  LVls   = (flag && 0x03<<4) == 0x01<<4; 
-  LVld   = (flag && 0x03<<6) == 0x01<<6; 
+  HVls   = (flag & 0x03   ) == 0x01;  
+  HVld   = (flag & 0x03<<2) == 0x01<<2; 
+  LVls   = (flag & 0x03<<4) == 0x01<<4; 
+  LVld   = (flag & 0x03<<6) == 0x01<<6; 
   
   return true;
 }
@@ -309,9 +309,9 @@ bool ParseRVCPGN1FED0(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &CirCon, bo
   Instance=N2kMsg.GetByte(Index);
   flag=N2kMsg.GetByte(Index);
      
-  CirCon     = (flag && 0x03   ) == 0x01;  
-  RecDisCom  = (flag && 0x03<<2) == 0x01<<2; 
-  Bypassed   = (flag && 0x03<<4) == 0x01<<4; 
+  CirCon     = (flag & 0x03   ) == 0x01;  
+  RecDisCom  = (flag & 0x03<<2) == 0x01<<2; 
+  Bypassed   = (flag & 0x03<<4) == 0x01<<4; 
   
   return true;
 }
@@ -344,7 +344,7 @@ bool ParseRVCPGN1FECF(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &DisCmd) {
   Instance=N2kMsg.GetByte(Index);
   flag=N2kMsg.GetByte(Index);
     
-  DisCmd  = (flag && 0x03   ) == 0x01;  
+  DisCmd  = (flag & 0x03   ) == 0x01;  
   
   return true;
 }
@@ -355,7 +355,7 @@ bool ParseRVCPGN1FECF(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &DisCmd) {
 
 //*****************************************************************************
 // Charger Status - 1FFC7h
-void SetRVCPGN1FFC7(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t CVdc, uint16_t CAdc, uint8_t PerMax,
+void SetRVCPGN1FFC7(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint16_t CVdc, uint16_t CAdc, uint8_t PerMax,
                     tRVCBatChrgMode State, bool EnableAtPO, bool AutoRechg, tRVCChrgForceChrg ForcedChrg){
     uint8_t  flag;     
     
@@ -365,7 +365,7 @@ void SetRVCPGN1FFC7(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t CVdc, uint16_t C
     
     N2kMsg.SetPGN(0x1FFC7);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.Add2ByteUInt(CVdc);
     N2kMsg.Add2ByteUInt(CAdc);
     N2kMsg.AddByte(PerMax);
@@ -373,22 +373,25 @@ void SetRVCPGN1FFC7(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t CVdc, uint16_t C
     N2kMsg.AddByte(flag);                    
 }
 
-bool ParseRVCPGN1FFC7(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &CVdc, uint16_t &CAdc, uint8_t &PerMax,
+bool ParseRVCPGN1FFC7(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &CVdc, uint16_t &CAdc, uint8_t &PerMax,
                             tRVCBatChrgMode &State, bool &EnableAtPO, bool &AutoRechg, tRVCChrgForceChrg &ForcedChrg){                           
   if (N2kMsg.PGN!=0x1FEC7) return false;
 
   int     Index=0;
   uint8_t flag;
   
-  Instance=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag&0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
+  
   CVdc=N2kMsg.Get2ByteUInt(Index);
   CAdc=N2kMsg.Get2ByteUInt(Index);
   PerMax=N2kMsg.GetByte(Index);
   State=(tRVCBatChrgMode)N2kMsg.GetByte(Index);
+  
   flag=N2kMsg.GetByte(Index);
-    
-  EnableAtPO = (flag && 0x03   ) == 0x01;  
-  AutoRechg  = (flag && 0x03<<2) == 0x01<<2;   
+  EnableAtPO = (flag & 0x03   ) == 0x01;  
+  AutoRechg  = (flag & 0x03<<2) == 0x01<<2;   
   ForcedChrg = (tRVCChrgForceChrg) (flag >> 4);
   
   return true;
@@ -399,10 +402,10 @@ bool ParseRVCPGN1FFC7(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &CVdc, 
 //*****************************************************************************
 // Charger Status2 - 1FF9Dh  (PROPOSED, TEMP USING OLD BRIDGE_DGN_LIST DGN #)
 #warning CHARGER STATUS2 USING TEMP PGN#1FF9Dh 
-void SetRVCPGN1FF9D(tN2kMsg &N2kMsg, uint8_t ChrgInst, uint8_t DCInst, uint8_t DevPri, uint16_t Vdc, uint16_t Adc, uint8_t Temp) {
+void SetRVCPGN1FF9D(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t ChrgInst, uint8_t DCInst, uint8_t DevPri, uint16_t Vdc, uint16_t Adc, uint8_t Temp) {
     N2kMsg.SetPGN(0x1FF9D);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(ChrgInst);
+    N2kMsg.AddByte((ChrgInst & 0x0F) | ChrgType<<4);
     N2kMsg.AddByte(DCInst);
     N2kMsg.AddByte(DevPri);
     N2kMsg.Add2ByteUInt(Vdc);
@@ -410,12 +413,15 @@ void SetRVCPGN1FF9D(tN2kMsg &N2kMsg, uint8_t ChrgInst, uint8_t DCInst, uint8_t D
     N2kMsg.AddByte(Temp);
 }
 
-bool ParseRVCPGN1FF9D(const tN2kMsg &N2kMsg, uint8_t &ChrgInst, uint8_t &DCInst, uint8_t &DevPri, uint16_t &Vdc, uint16_t &Adc, uint8_t &Temp) {
+bool ParseRVCPGN1FF9D(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &ChrgInst, uint8_t &DCInst, uint8_t &DevPri, uint16_t &Vdc, uint16_t &Adc, uint8_t &Temp) {
   if (N2kMsg.PGN!=0x1FF9D) return false;
 
   int Index=0;
+  uint8_t flag;
   
-  ChrgInst=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  ChrgInst = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   DCInst=N2kMsg.GetByte(Index);
   DevPri=N2kMsg.GetByte(Index);
   Vdc=N2kMsg.Get2ByteUInt(Index);
@@ -430,7 +436,7 @@ bool ParseRVCPGN1FF9D(const tN2kMsg &N2kMsg, uint8_t &ChrgInst, uint8_t &DCInst,
   
 //*****************************************************************************
 // Charger Command - 1FFC5h
-void SetRVCPGN1FFC5(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgStatus ChrgStat,  
+void SetRVCPGN1FFC5(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, tRVCChrgStatus ChrgStat,  
                        bool EnableAtPO, bool AutoRechg, tRVCChrgForceChrg ForcedChrg){
     uint8_t  flag;     
     
@@ -440,7 +446,7 @@ void SetRVCPGN1FFC5(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgStatus ChrgStat,
     
     N2kMsg.SetPGN(0x1FFC5);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.AddByte((uint8_t)ChrgStat);
     N2kMsg.AddByte(flag);  
     //N2kMsg.AddByte(0Xff);
@@ -450,21 +456,20 @@ void SetRVCPGN1FFC5(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgStatus ChrgStat,
     //N2kMsg.AddByte(0Xff);    
 }
 
-bool ParseRVCPGN1FFC5(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgStatus &ChrgStat, 
+bool ParseRVCPGN1FFC5(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, tRVCChrgStatus &ChrgStat, 
                                             bool &EnableAtPO, bool &AutoRechg, tRVCChrgForceChrg &ForcedChrg){
   if (N2kMsg.PGN!=0x1FEC5) return false;
 
   int     Index=0;
   uint8_t flag;
   
-  Instance=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   ChrgStat=(tRVCChrgStatus)N2kMsg.GetByte(Index);
   flag=N2kMsg.GetByte(Index);
-    
-  
-  EnableAtPO = (flag && 0x03   ) == 0x01;  
-  AutoRechg  = (flag && 0x03<<2) == 0x01<<2;  
-  
+  EnableAtPO = (flag & 0x03   ) == 0x01;  
+  AutoRechg  = (flag & 0x03<<2) == 0x01<<2;  
   ForcedChrg = (tRVCChrgForceChrg) (flag >> 4);
   
   return true;
@@ -474,7 +479,7 @@ bool ParseRVCPGN1FFC5(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgStatus &
 
 //*****************************************************************************
 // Charger Configuration Status - 1FFC6h
-void SetRVCPGN1FFC6(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tRVCChrgMode  ChrgMode, 
+void SetRVCPGN1FFC6(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tRVCChrgMode  ChrgMode, 
                        bool BatSense, tRVCChrgLine Line, bool Linked, tRVCBatType BatType,  uint16_t BatSize, uint8_t MaxAmps){
     uint8_t  flag;     
     
@@ -484,7 +489,7 @@ void SetRVCPGN1FFC6(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tR
     
     N2kMsg.SetPGN(0x1FFC6);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.AddByte((uint8_t)ChrgAlg);
     N2kMsg.AddByte((uint8_t)ChrgMode);
     N2kMsg.AddByte(flag); 
@@ -492,22 +497,25 @@ void SetRVCPGN1FFC6(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tR
     N2kMsg.AddByte(MaxAmps);
 }
 
-bool ParseRVCPGN1FFC6(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgAlg  &ChrgAlg,  tRVCChrgMode  &ChrgMode, 
+bool ParseRVCPGN1FFC6(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, tRVCChrgAlg  &ChrgAlg,  tRVCChrgMode  &ChrgMode, 
                                bool &BatSense, tRVCChrgLine &Line, bool &Linked, tRVCBatType &BatType,  uint16_t &BatSize, uint8_t &MaxAmps){
   if (N2kMsg.PGN!=0x1FEC6) return false;
 
   int     Index=0;
   uint8_t flag;
   
-  Instance=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
+  
   ChrgAlg=(tRVCChrgAlg)N2kMsg.GetByte(Index);
   ChrgMode=(tRVCChrgMode)N2kMsg.GetByte(Index);
   flag=N2kMsg.GetByte(Index);
   BatSize=N2kMsg.Get2ByteUInt(Index);
   MaxAmps=N2kMsg.Get2ByteUInt(Index);
     
-  BatSense = (flag && 0x03   ) == 0x01;  
-  Linked   = (flag && 0x03<<2) == 0x01<<2;  
+  BatSense = (flag & 0x03   ) == 0x01;  
+  Linked   = (flag & 0x03<<2) == 0x01<<2;  
   BatType  = (tRVCBatType) (flag >> 4);
   
   return true;
@@ -516,10 +524,10 @@ bool ParseRVCPGN1FFC6(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgAlg  &Ch
 
 //*****************************************************************************
 // Charger Configuration Status2 - 1FF96h
-void SetRVCPGN1FF96(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t PerMaxAmps, uint8_t PerMaxShore, uint8_t ShorBr, uint8_t DefBatTemp, uint16_t RchgVolt){
+void SetRVCPGN1FF96(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint8_t PerMaxAmps, uint8_t PerMaxShore, uint8_t ShorBr, uint8_t DefBatTemp, uint16_t RchgVolt){
     N2kMsg.SetPGN(0x1FF96);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.AddByte(PerMaxAmps);
     N2kMsg.AddByte(PerMaxShore);
     N2kMsg.AddByte(DefBatTemp); 
@@ -527,12 +535,15 @@ void SetRVCPGN1FF96(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t PerMaxAmps, uint8
     //N2kMsg.Add2ByteUInt(0xFF);    
 }
 
-bool ParseRVCPGN1FF96(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxShore, uint8_t &DefBatTemp, uint16_t &RchgVolt) {
+bool ParseRVCPGN1FF96(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxShore, uint8_t &DefBatTemp, uint16_t &RchgVolt) {
   if (N2kMsg.PGN!=0x1FF96) return false;
 
   int     Index=0;
+  uint8_t flag;
   
-  Instance=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   PerMaxAmps=N2kMsg.GetByte(Index);
   PerMaxShore=N2kMsg.GetByte(Index);
   DefBatTemp=N2kMsg.GetByte(Index);
@@ -544,22 +555,25 @@ bool ParseRVCPGN1FF96(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &PerMaxA
 
 //*****************************************************************************
 // Charger Configuration Status3 - 1FECCh
-void SetRVCPGN1FECC(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkV, uint16_t AbsorbV, uint16_t FloatV, uint8_t TempComp){
+void SetRVCPGN1FECC(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint16_t BulkV, uint16_t AbsorbV, uint16_t FloatV, uint8_t TempComp){
     N2kMsg.SetPGN(0x1FECC);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.Add2ByteUInt(BulkV);   
     N2kMsg.Add2ByteUInt(AbsorbV);   
     N2kMsg.Add2ByteUInt(FloatV);   
     N2kMsg.AddByte(TempComp);
 }
 
-bool ParseRVCPGN1FECC(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkV, uint16_t &AbsorbV, uint16_t &FloatV, uint8_t &TempComp) {
+bool ParseRVCPGN1FECC(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &BulkV, uint16_t &AbsorbV, uint16_t &FloatV, uint8_t &TempComp) {
   if (N2kMsg.PGN!=0x1FECC) return false;
 
   int     Index=0;
+  uint8_t flag;
   
-  Instance=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   BulkV=N2kMsg.Get2ByteUInt(Index);
   AbsorbV=N2kMsg.Get2ByteUInt(Index);
   FloatV=N2kMsg.Get2ByteUInt(Index);
@@ -571,22 +585,25 @@ bool ParseRVCPGN1FECC(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkV,
 
 //*****************************************************************************
 // Charger Configuration Status4 - 1FEBFh
-void SetRVCPGN1FEBF(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkT, uint16_t AbsorbT, uint16_t FloatT){
+void SetRVCPGN1FEBF(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint16_t BulkT, uint16_t AbsorbT, uint16_t FloatT){
     N2kMsg.SetPGN(0x1FEBF);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.Add2ByteUInt(BulkT);   
     N2kMsg.Add2ByteUInt(AbsorbT);   
     N2kMsg.Add2ByteUInt(FloatT);  
     //N2kMsg.AddByte(0Xff);
 }
 
-bool ParseRVCPGN1FEBF(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkT, uint16_t &AbsorbT, uint16_t &FloatT){
+bool ParseRVCPGN1FEBF(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &BulkT, uint16_t &AbsorbT, uint16_t &FloatT){
   if (N2kMsg.PGN!=0x1FEBF) return false;
 
   int     Index=0;
+  uint8_t flag;
   
-  Instance=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   BulkT=N2kMsg.Get2ByteUInt(Index);
   AbsorbT=N2kMsg.Get2ByteUInt(Index);
   FloatT=N2kMsg.Get2ByteUInt(Index);
@@ -598,7 +615,7 @@ bool ParseRVCPGN1FEBF(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkT,
 
 //*****************************************************************************
 // Charger Configuration Command - 1FFC4h
-void SetRVCPGN1FFC4(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tRVCChrgMode  ChrgMode, 
+void SetRVCPGN1FFC4(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tRVCChrgMode  ChrgMode, 
                        bool BatSense, tRVCChrgLine Line, bool Linked,  tRVCBatType BatType,  uint16_t BatSize, uint8_t MaxAmps){
     
     uint8_t  flag;    
@@ -609,7 +626,7 @@ void SetRVCPGN1FFC4(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tR
 
     N2kMsg.SetPGN(0x1FFC4);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.AddByte((uint8_t)ChrgAlg);
     N2kMsg.AddByte((uint8_t)ChrgMode);
     N2kMsg.AddByte(flag);
@@ -618,14 +635,16 @@ void SetRVCPGN1FFC4(tN2kMsg &N2kMsg, uint8_t Instance, tRVCChrgAlg  ChrgAlg,  tR
     N2kMsg.AddByte(MaxAmps);
 }
 
-bool ParseRVCPGN1FFC4(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgAlg  &ChrgAlg,  tRVCChrgMode  &ChrgMode, 
+bool ParseRVCPGN1FFC4(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, tRVCChrgAlg  &ChrgAlg,  tRVCChrgMode  &ChrgMode, 
                                bool &BatSense, tRVCChrgLine &Line, bool &Linked,  tRVCBatType &BatType,  uint16_t &BatSize, uint8_t &MaxAmps){
   if (N2kMsg.PGN!=0x1FFC4) return false;
 
   int     Index=0;
   uint8_t flag;
   
-  Instance=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   ChrgAlg=(tRVCChrgAlg)N2kMsg.GetByte(Index);
   ChrgMode=(tRVCChrgMode)N2kMsg.GetByte(Index);
   flag=N2kMsg.GetByte(Index);
@@ -633,7 +652,7 @@ bool ParseRVCPGN1FFC4(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgAlg  &Ch
   BatType=(tRVCBatType)(N2kMsg.GetByte(Index) & 0x0F);
   MaxAmps=N2kMsg.GetByte(Index);
     
-  BatSense = (flag && 0x03) == 0x01;  
+  BatSense = (flag & 0x03) == 0x01;  
   Line     = (tRVCChrgLine) ((flag >> 2) & 0x0F);
   
   return true;
@@ -643,11 +662,11 @@ bool ParseRVCPGN1FFC4(const tN2kMsg &N2kMsg, uint8_t &Instance, tRVCChrgAlg  &Ch
 
 //*****************************************************************************
 // Charger Configuration Command2 - 1FF95h
-void SetRVCPGN1FF95(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t PerMaxAmps, uint8_t PerMaxShore, uint8_t ShorBr, uint8_t DefBatTemp, uint16_t RchgVolt){
+void SetRVCPGN1FF95(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint8_t PerMaxAmps, uint8_t PerMaxShore, uint8_t ShorBr, uint8_t DefBatTemp, uint16_t RchgVolt){
     
     N2kMsg.SetPGN(0x1FF95);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.AddByte(PerMaxAmps);
     N2kMsg.AddByte(PerMaxShore);
     N2kMsg.AddByte(ShorBr);
@@ -656,12 +675,15 @@ void SetRVCPGN1FF95(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t PerMaxAmps, uint8
     //N2kMsg.AddByte(0Xff);    
 }
 
-bool ParseRVCPGN1FF95(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxShore, uint8_t &ShorBr, uint8_t &DefBatTemp, uint16_t &RchgVolt){
+bool ParseRVCPGN1FF95(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxShore, uint8_t &ShorBr, uint8_t &DefBatTemp, uint16_t &RchgVolt){
   if (N2kMsg.PGN!=0x1FFC4) return false;
   
   int     Index=0;
-    
-  Instance=N2kMsg.GetByte(Index);
+  uint8_t flag;
+  
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   PerMaxAmps=N2kMsg.GetByte(Index);
   PerMaxShore=N2kMsg.GetByte(Index);
   ShorBr=N2kMsg.GetByte(Index);
@@ -675,10 +697,10 @@ bool ParseRVCPGN1FF95(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &PerMaxA
 
 //*****************************************************************************
 // Charger Configuration Command3 - 1FECBh
-void SetRVCPGN1FECB(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkV, uint16_t AbsorbV, uint16_t FloatV, uint8_t TempComp){
+void SetRVCPGN1FECB(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint16_t BulkV, uint16_t AbsorbV, uint16_t FloatV, uint8_t TempComp){
     N2kMsg.SetPGN(0x1FECB);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.Add2ByteUInt(BulkV);   
     N2kMsg.Add2ByteUInt(AbsorbV);   
     N2kMsg.Add2ByteUInt(FloatV);   
@@ -686,12 +708,15 @@ void SetRVCPGN1FECB(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkV, uint16_t 
     
 }
 
-bool ParseRVCPGN1FECB(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkV, uint16_t &AbsorbV, uint16_t &FloatV, uint8_t &TempComp){
+bool ParseRVCPGN1FECB(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &BulkV, uint16_t &AbsorbV, uint16_t &FloatV, uint8_t &TempComp){
   if (N2kMsg.PGN!=0x1FECB) return false;
   
   int     Index=0;
-
-  Instance=N2kMsg.GetByte(Index);
+  uint8_t flag;
+  
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   BulkV=N2kMsg.Get2ByteUInt(Index);
   AbsorbV=N2kMsg.Get2ByteUInt(Index);
   FloatV=N2kMsg.Get2ByteUInt(Index);
@@ -703,23 +728,26 @@ bool ParseRVCPGN1FECB(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkV,
 
 //*****************************************************************************
 // Charger Configuration Command4 - 1FEBEh
-void SetRVCPGN1FEBE(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t BulkT, uint16_t AbsorbT, uint16_t FloatT){
+void SetRVCPGN1FEBE(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint16_t BulkT, uint16_t AbsorbT, uint16_t FloatT){
 
     N2kMsg.SetPGN(0x1FEBE);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.Add2ByteUInt(BulkT);   
     N2kMsg.Add2ByteUInt(AbsorbT);   
     N2kMsg.Add2ByteUInt(FloatT);  
     //N2kMsg.AddByte(0Xff);
 }
 
-bool ParseRVCPGN1FEBE(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkT, uint16_t &AbsorbT, uint16_t &FloatT){
+bool ParseRVCPGN1FEBE(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &BulkT, uint16_t &AbsorbT, uint16_t &FloatT){
   if (N2kMsg.PGN!=0x1FEBE) return false;
 
   int     Index=0;
+  uint8_t flag;
   
-  Instance=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   BulkT=N2kMsg.Get2ByteUInt(Index);
   AbsorbT=N2kMsg.Get2ByteUInt(Index);
   FloatT=N2kMsg.Get2ByteUInt(Index); 
@@ -733,13 +761,13 @@ bool ParseRVCPGN1FEBE(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &BulkT,
 
 //*****************************************************************************
 // Charger Equalization Status - 1FF99h
-void SetRVCPGN1FF99(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Time, bool PreChrg){
+void SetRVCPGN1FF99(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint16_t Time, bool PreChrg){
     uint8_t  flag = 0xFC;                                         // Unused bits set to 1's 
     if (PreChrg) flag |= 0x01;
         
     N2kMsg.SetPGN(0x1FF99);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.Add2ByteUInt(Time);   
     N2kMsg.AddByte(flag);
     //N2kMsg.AddByte(0Xff);
@@ -748,17 +776,18 @@ void SetRVCPGN1FF99(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Time, bool PreCh
     //N2kMsg.AddByte(0Xff);
 }
 
-bool ParseRVCPGN1FF99(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &Time, bool &PreChrg){
+bool ParseRVCPGN1FF99(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &Time, bool &PreChrg){
   if (N2kMsg.PGN!=0x1FF99) return false;
 
   int     Index=0;
   uint8_t flag;
   
-  Instance=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   Time=N2kMsg.Get2ByteUInt(Index);
   flag=N2kMsg.GetByte(Index);
-  
-  PreChrg = (flag && 0x03) == 0x01;  
+  PreChrg = (flag & 0x03) == 0x01;  
 
   return true;  
 }
@@ -772,11 +801,11 @@ bool ParseRVCPGN1FF99(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &Time, 
 //*****************************************************************************
 // Charger Equalization Configuration Status - 1FF98h
 
-void SetRVCPGN1FF98(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Volts, uint16_t Time){
+void SetRVCPGN1FF98(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint16_t Volts, uint16_t Time){
     
     N2kMsg.SetPGN(0x1FF98);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.Add2ByteUInt(Volts);   
     N2kMsg.Add2ByteUInt(Time);   
     //N2kMsg.AddByte(0Xff);
@@ -784,12 +813,15 @@ void SetRVCPGN1FF98(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Volts, uint16_t 
     //N2kMsg.AddByte(0Xff);
 }
 
-bool ParseRVCPGN1FF98(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &Volts, uint16_t &Time){
+bool ParseRVCPGN1FF98(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &Volts, uint16_t &Time){
    if (N2kMsg.PGN!=0x1FF98) return false;
 
   int     Index=0;
+  uint8_t flag;
   
-  Instance=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   Volts=N2kMsg.Get2ByteUInt(Index);
   Time=N2kMsg.Get2ByteUInt(Index);
   
@@ -803,11 +835,11 @@ bool ParseRVCPGN1FF98(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &Volts,
 
 //*****************************************************************************
 // Charger Equalization Configuration Command - 1FF97h
-void SetRVCPGN1FF97(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Volts, uint16_t Time){
+void SetRVCPGN1FF97(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint16_t Volts, uint16_t Time){
     
     N2kMsg.SetPGN(0x1FF97);
     N2kMsg.Priority=6;
-    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.Add2ByteUInt(Volts);   
     N2kMsg.Add2ByteUInt(Time);   
     //N2kMsg.AddByte(0Xff);
@@ -815,12 +847,15 @@ void SetRVCPGN1FF97(tN2kMsg &N2kMsg, uint8_t Instance, uint16_t Volts, uint16_t 
     //N2kMsg.AddByte(0Xff);    
 }
 
-bool ParseRVCPGN1FF97(const tN2kMsg &N2kMsg, uint8_t &Instance, uint16_t &Volts, uint16_t &Time){
+bool ParseRVCPGN1FF97(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &Volts, uint16_t &Time){
    if (N2kMsg.PGN!=0x1FF97) return false;
 
   int     Index=0;
+  uint8_t flag;
   
-  Instance=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+  Instance = flag & 0x0F;
+  ChrgType =(tRVCChrgType)( flag>>4);
   Volts=N2kMsg.Get2ByteUInt(Index);
   Time=N2kMsg.Get2ByteUInt(Index);
   
@@ -917,10 +952,10 @@ bool ParseISOPGN1FECA(tN2kMsg &N2kMsg, bool &On, bool &Active, bool &Red, bool &
   FMI  = (tISOFMIType) (part>>4);
   SPN += (uint32_t)(part & 0x0F) << 16;
   
-  On      = (flag && 0x03   ) == 0x01;  
-  Active  = (flag && 0x03<<2) == 0x01<<2; 
-  Red     = (flag && 0x03<<4) == 0x01<<4; 
-  Yellow  = (flag && 0x03<<6) == 0x01<<6; 
+  On      = (flag & 0x03   ) == 0x01;  
+  Active  = (flag & 0x03<<2) == 0x01<<2; 
+  Red     = (flag & 0x03<<4) == 0x01<<4; 
+  Yellow  = (flag & 0x03<<6) == 0x01<<6; 
   
   return true;
 }
