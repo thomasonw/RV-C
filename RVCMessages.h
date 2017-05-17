@@ -72,9 +72,9 @@ enum tRVCChrgMode  {
 
 
 enum tRVCChrgLine {
-                            RVCDCcl_line1 = B00,
-                            RVCDCcl_line2 = B01,
-                            RVCDCcl_na    = B11        /* Bit field - all 1's indicated undefined value in J1939 CAN standard) */
+                            RVCDCcl_line1 = 0x00,
+                            RVCDCcl_line2 = 0x01,
+                            RVCDCcl_na    = 0x03        /* Bit field - all 1's indicated undefined value in J1939 CAN standard) */
                           };
                           
 
