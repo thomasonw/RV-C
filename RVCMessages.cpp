@@ -878,9 +878,7 @@ void SetRVCPGN17E00(tN2kMsg &N2kMsg, uint8_t Destination, int Count, char *Chara
     N2kMsg.Destination = Destination;                                                           // Terminal is a node-to-node only communication protocol
     N2kMsg.Priority=7;
     
-    N2kMsg.AddByte(Count);
     for (i = 0; ((i < Count) && (i < 8)); i++)  N2kMsg.AddByte(*Characters++);
-    for (; i < 8; i++)                          N2kMsg.AddByte(0xFF);                          // Pass unused data bytes with 0xFF per spec.      
 }
 
               
@@ -891,7 +889,7 @@ bool ParseRVCPGN17E00(const tN2kMsg &N2kMsg, uint8_t &Source, int &Count, char c
   int i;
   
   Source=N2kMsg.Source;
-  Count==N2kMsg.GetByte(Index);
+  Count =N2kMsg.DataLen;
   for (i=0; ((i < Count) && (i < 8)); i++)
       characters[i] = N2kMsg.GetByte(Index);
 
