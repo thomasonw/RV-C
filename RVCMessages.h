@@ -1,8 +1,9 @@
 //      RVCMessages.h
 //
 //
-//      Copyright (c) 2016 by William A. Thomason.      http://arduinoalternatorregulator.blogspot.com/
-//                                                      https://github.com/thomasonw/RV-C
+//      Copyright (c) 2016, 2018 by William A. Thomason.      http://arduinoalternatorregulator.blogspot.com/
+//                                                            http://smartdcgenerator.blogspot.com/
+//                                                            https://github.com/thomasonw/RV-C
 //                                                        
 //                                                        
 //              For use with  NMEA2000 lib - Kave Oy, www.kave.fi/      https://github.com/ttlappalainen/NMEA2000
@@ -113,9 +114,10 @@ enum tRVCBatType  {
                             RVCDCct_ACSourced=0,
                             RVCDCct_Solar=1,
                             RVCDCct_Wind=2,
-                            RVCDCct_Engine=3,           /* Engine alternator, DC Genertor, etc */
+                            RVCDCct_Alternator=3,        /* Engine alternator */
                             RVCDCct_FuelCell=4,
                             RVCDCct_Water=5,
+                            RVCDCct_Generator=6,
                             RVCDCct_VD01=13,            /* Vender Defined types */
                             RVCDCct_VD02=14,
                             RVCDCct_Unknown=0x0F        /* Battery Type is a 4-bit field - all 1's indicated undefined value in J1939 CAN standard) */
@@ -391,7 +393,7 @@ inline bool ParseRVCDCDisconnectCommand(const tN2kMsg &N2kMsg, uint8_t &Instance
 //*****************************************************************************
 // Charger Status - 1FFC7h
 // Input:
-//  - Type                          AC Charger, Alternator, etc.  (PROPOSED EXTENSION)
+//  - Type                          AC Charger, DC Generators, Alternator, Solar, etc.  (PROPOSED EXTENSION)
 //  - Instance                      Instance of charger 0..13
 //  - Charge Voltage                0..3212.5v, in 50mV steps
 //  - Charge Current                -2M..+2MA, in 1mA steps (0x77359400 = 0A)
