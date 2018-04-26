@@ -25,7 +25,7 @@
 //
 //
 //                  8/29/2016   Initial posting.  Contains a pending change to the current RV-C spec:
-//                      'Charger Status2' @ 1FF9Dh  (PROPOSED, TEMP USING OLD BRIDGE_DGN_LIST DGN #)
+//                      'Charger Status2' @ 1FEA3h  (PROPOSED, TEMP USING OLD BRIDGE_DGN_LIST DGN #)
 //
   
 
@@ -421,11 +421,10 @@ inline bool ParseRVCChargerStatus(const tN2kMsg &N2kMsg, tRVCChrgType  &Type, ui
 
 
 
-////////////////   THIS IS A PROPOSED ONE!!!!!!  ???????????????????????????????
 //*****************************************************************************
-// Charger Status2 - 1FF9Dh  (PROPOSED, TEMP USING OLD BRIDGE_DGN_LIST DGN #)
+// Charger Status2 - 1FEA3h  
 // Input:
-//  - Type                          AC Charger, Alternator, etc.  (PROPOSED EXTENSION)
+//  - Type                          AC Charger, Alternator, etc.
 //  - Instance                      Instance of charger 0..13
 //  - DC Source Instance            DC Instance (bus) ID associated with
 //  - Device Priority               Relative ranking of DC charging Source
@@ -434,15 +433,15 @@ inline bool ParseRVCChargerStatus(const tN2kMsg &N2kMsg, tRVCChrgType  &Type, ui
 //  - Temperature                   -40..210 in deg-C, in 1C steps
 // Output:
 //  - N2kMsg                        RV_C message ready to be send.
-void SetRVCPGN1FF9D(tN2kMsg &N2kMsg, tRVCChrgType Type, uint8_t ChrgInst, uint8_t DCInst, uint8_t DevPri, uint16_t Vdc, uint16_t Adc, uint8_t Temp);
+void SetRVCPGN1FEA3(tN2kMsg &N2kMsg, tRVCChrgType Type, uint8_t ChrgInst, uint8_t DCInst, uint8_t DevPri, uint16_t Vdc, uint16_t Adc, uint8_t Temp);
               
 inline void SetRVCChargerStatus2(tN2kMsg &N2kMsg, tRVCChrgType Type, uint8_t ChrgInst, uint8_t DCInst, uint8_t DevPri, uint16_t Vdc, uint16_t Adc, uint8_t Temp) {
-  SetRVCPGN1FF9D(N2kMsg,Type,ChrgInst,DCInst,DevPri,Vdc,Adc,Temp);
+  SetRVCPGN1FEA3(N2kMsg,Type,ChrgInst,DCInst,DevPri,Vdc,Adc,Temp);
 }
 
-bool ParseRVCPGN1FF9D(const tN2kMsg &N2kMsg, tRVCChrgType &Type, uint8_t &ChrgInst, uint8_t &DCInst, uint8_t &DevPri, uint16_t &Vdc, uint16_t &Adc, uint8_t &Temp);
+bool ParseRVCPGN1FEA3(const tN2kMsg &N2kMsg, tRVCChrgType &Type, uint8_t &ChrgInst, uint8_t &DCInst, uint8_t &DevPri, uint16_t &Vdc, uint16_t &Adc, uint8_t &Temp);
 inline bool ParseRVCChargerStatus2(const tN2kMsg &N2kMsg, tRVCChrgType &Type, uint8_t &ChrgInst, uint8_t &DCInst, uint8_t &DevPri, uint16_t &Vdc, uint16_t &Adc, uint8_t &Temp) {
-  return ParseRVCPGN1FF9D(N2kMsg,Type,ChrgInst,DCInst,DevPri,Vdc,Adc,Temp);                   
+  return ParseRVCPGN1FEA3(N2kMsg,Type,ChrgInst,DCInst,DevPri,Vdc,Adc,Temp);                   
 }
                    
                                  

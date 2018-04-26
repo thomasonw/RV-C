@@ -1,8 +1,9 @@
 //  RVCMessages.cpp
 //
 //
-//      Copyright (c) 2016 by William A. Thomason.      http://arduinoalternatorregulator.blogspot.com/
-//                                                      https://github.com/thomasonw/RV-C
+//      Copyright (c) 2016, 2018 by William A. Thomason.      http://arduinoalternatorregulator.blogspot.com/
+//                                                            http://smartdcgenerator.blogspot.com/
+//                                                            https://github.com/thomasonw/RV-C
 //                                                        
 //                                                        
 //              For use with  NMEA2000 lib - Kave Oy, www.kave.fi/      https://github.com/ttlappalainen/NMEA2000
@@ -321,7 +322,6 @@ bool ParseRVCPGN1FED0(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &CirCon, bo
 
 
 //*****************************************************************************
-// DC Disconnect Command
 void SetRVCPGN1FECF(tN2kMsg &N2kMsg, uint8_t Instance, bool Disconnect) {
     uint8_t  flag = 0xFC;               /* Unused bits must be set high */
 
@@ -375,7 +375,6 @@ void SetRVCPGN1FFC7(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, ui
 
 bool ParseRVCPGN1FFC7(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &CVdc, uint16_t &CAdc, uint8_t &PerMax,
                             tRVCBatChrgMode &State, bool &EnableAtPO, bool &AutoRechg, tRVCChrgForceChrg &ForcedChrg){                           
-  if (N2kMsg.PGN!=0x1FEC7) return false;
 
   int     Index=0;
   uint8_t flag;
@@ -398,12 +397,7 @@ bool ParseRVCPGN1FFC7(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &In
 }
 
 
-////////////////   THIS IS A PROPOSED ONE!!!!!!  ???????????????????????????????
 //*****************************************************************************
-// Charger Status2 - 1FF9Dh  (PROPOSED, TEMP USING OLD BRIDGE_DGN_LIST DGN #)
-#warning CHARGER STATUS2 USING TEMP PGN#1FF9Dh 
-void SetRVCPGN1FF9D(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t ChrgInst, uint8_t DCInst, uint8_t DevPri, uint16_t Vdc, uint16_t Adc, uint8_t Temp) {
-    N2kMsg.SetPGN(0x1FF9D);
     N2kMsg.Priority=6;
     N2kMsg.AddByte((ChrgInst & 0x0F) | ChrgType<<4);
     N2kMsg.AddByte(DCInst);
@@ -413,8 +407,6 @@ void SetRVCPGN1FF9D(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t ChrgInst, ui
     N2kMsg.AddByte(Temp);
 }
 
-bool ParseRVCPGN1FF9D(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &ChrgInst, uint8_t &DCInst, uint8_t &DevPri, uint16_t &Vdc, uint16_t &Adc, uint8_t &Temp) {
-  if (N2kMsg.PGN!=0x1FF9D) return false;
 
   int Index=0;
   uint8_t flag;
@@ -930,13 +922,11 @@ void SetISOPGN1FECA(tN2kMsg &N2kMsg, bool On, bool Active, bool Red, bool Yellow
 
 }
 
-bool ParseISOPGN1FECA(tN2kMsg &N2kMsg, bool &On, bool &Active, bool &Red, bool &Yellow, uint8_t DSA,
                     uint32_t &SPN, tISOFMIType &FMI, uint8_t &Count, uint8_t &DSA_ext, uint8_t &Bank){
    if (N2kMsg.PGN!=0x1FECA) return false;
 
   int     Index=0;
   uint8_t flag, part;
-  
   
   flag=N2kMsg.GetByte(Index);
   DSA=N2kMsg.GetByte(Index);
