@@ -24,8 +24,6 @@
 //              along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
-//                  8/29/2016   Initial posting.  Contains a pending change to the current RV-C spec:
-//                      'Charger Status2' @ 1FF9Dh  (PROPOSED, TEMP USING OLD BRIDGE_DGN_LIST DGN #)
 //
   
 
@@ -322,6 +320,7 @@ bool ParseRVCPGN1FED0(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &CirCon, bo
 
 
 //*****************************************************************************
+// DC Disconnect Command  - 1FECFh
 void SetRVCPGN1FECF(tN2kMsg &N2kMsg, uint8_t Instance, bool Disconnect) {
     uint8_t  flag = 0xFC;               /* Unused bits must be set high */
 
@@ -351,6 +350,158 @@ bool ParseRVCPGN1FECF(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &DisCmd) {
 
 
 
+//*****************************************************************************
+// Generator Status 1 - 1FFDCh
+void SetRVCPGN1FFDC(tN2kMsg &N2kMsg, tRVCGenStatus Status, uint32_t Minutes, uint8_t Load, uint16_t SBVdc) {
+    
+    N2kMsg.SetPGN(0x1FECF);
+    N2kMsg.Priority=6;
+    N2kMsg.AddByte((uint8_t) Status);
+    N2kMsg.Add4ByteUInt(Minutes);
+    N2kMsg.AddByte(Load);  
+    N2kMsg.AddByte(SBVdc);   
+}
+
+
+bool ParseRVCPGN1FFDC(const tN2kMsg &N2kMsg, tRVCGenStatus &Status, uint32_t &Minutes, uint8_t &Load, uint16_t &SBVdc) {
+    if (N2kMsg.PGN!=0x1FEDC) return false;   
+ 
+    int     Index=0;
+    
+    Status=(tRVCGenStatus)N2kMsg.GetByte(Index);
+    Minutes=N2kMsg.Get4ByteUInt(Index);
+    Load=N2kMsg.GetByte(Index);
+    SBVdc=N2kMsg.GetByte(Index);   
+
+    return true;
+  
+}
+
+
+//*****************************************************************************
+// Generator Status 2 - 1FFDBh
+void SetRVCPGN1FFDB(tN2kMsg &N2kMsg, bool OvrTemp, bool LowOP, bool LowOL, bool CautLght, uint8_t EngTemp, uint16_t RPM, uint16_t FFlow) {
+    
+    uint8_t  flag = 0; 
+    
+    if (OvrTemp)    flag |= 0x01;
+    if (LowOP)      flag |= 01<<2;
+    if (LowOL)      flag |= 01<<4;
+    if (CautLght)   flag |= 01<<6;
+    
+    N2kMsg.SetPGN(0x1FFDB);
+    N2kMsg.Priority=6;
+    N2kMsg.AddByte(flag);
+    N2kMsg.AddByte(EngTemp);
+    N2kMsg.Add2ByteUInt(RPM);
+    N2kMsg.Add2ByteUInt(FFlow);
+}
+
+bool ParseRVCPGN1FFDB(const tN2kMsg &N2kMsg, bool &OvrTemp, bool &LowOP, bool &LowOL, bool &CautLght, uint8_t &EngTemp, uint16_t &RPM, uint16_t &FFlow) {
+    if (N2kMsg.PGN!=0x1FFDB) return false;
+
+    int     Index=0;
+    uint8_t flag;   
+    
+    flag=N2kMsg.GetByte(Index);
+    OvrTemp = (flag & 0x03   ) == 0x01; 
+    LowOP   = (flag & 0x03<<2) == 0x01<<2;   
+    LowOL   = (flag & 0x03<<4) == 0x01<<4;   
+    CautLght= (flag & 0x03<<6) == 0x01<<6;   
+    
+    EngTemp=N2kMsg.GetByte(Index);
+    RPM=N2kMsg.Get2ByteUInt(Index);
+    FFlow=N2kMsg.Get2ByteUInt(Index);
+     
+    return true;
+}
+
+
+
+
+//*****************************************************************************
+// Generator Command  -  1FFDAh
+void SetRVCPGN1FFDA(tN2kMsg &N2kMsg, uint8_t Command) {
+    N2kMsg.SetPGN(0x1FFDA);
+    N2kMsg.Priority=6;
+    
+    N2kMsg.AddByte(Command);    
+    
+}
+
+bool ParseRVCPGN1FFDA(const tN2kMsg &N2kMsg, uint8_t &Command) {
+    if (N2kMsg.PGN!=0x1FFDA) return false;
+
+    int     Index=0;   
+    
+    Command=N2kMsg.GetByte(Index);
+
+    return true;
+}
+
+
+
+//*****************************************************************************
+// Generator Starter Configuration  -  1FFD9h
+void SetRVCPGN1FFD9(tN2kMsg &N2kMsg, tRVCGenStrTyp GenType, uint8_t PreCrank, uint8_t MaxCrank, uint8_t Stop) {
+    N2kMsg.SetPGN(0x1FFD9);
+    N2kMsg.Priority=6;
+    
+    N2kMsg.AddByte((uint8_t) GenType); 
+    N2kMsg.AddByte(PreCrank);
+    N2kMsg.AddByte(MaxCrank);
+    N2kMsg.AddByte(Stop);
+}
+
+
+bool ParseRVCPGN1FFD9(const tN2kMsg &N2kMsg, tRVCGenStrTyp &GenType, uint8_t &PreCrank, uint8_t &MaxCrank, uint8_t &Stop) {
+    if (N2kMsg.PGN!=0x1FFD9) return false;
+
+    int     Index=0;   
+    
+    GenType=(tRVCGenStrTyp)N2kMsg.GetByte(Index);
+    PreCrank=N2kMsg.GetByte(Index);
+    MaxCrank=N2kMsg.GetByte(Index);
+    Stop=N2kMsg.GetByte(Index);
+    
+    return true;
+}
+
+
+
+
+
+//*****************************************************************************
+// Generator Starter Configuration Command -  1FFD8h
+void SetRVCPGN1FFD8(tN2kMsg &N2kMsg, tRVCGenStrTyp GenType, uint8_t PreCrank, uint8_t MaxCrank, uint8_t Stop) {
+    N2kMsg.SetPGN(0x1FFD8);
+    N2kMsg.Priority=6;
+    
+    N2kMsg.AddByte((uint8_t) GenType); 
+    N2kMsg.AddByte(PreCrank);
+    N2kMsg.AddByte(MaxCrank);
+    N2kMsg.AddByte(Stop);
+}
+
+
+bool ParseRVCPGN1FFD8(const tN2kMsg &N2kMsg, tRVCGenStrTyp &GenType, uint8_t &PreCrank, uint8_t &MaxCrank, uint8_t &Stop) {
+    if (N2kMsg.PGN!=0x1FFD8) return false;
+
+    int     Index=0;   
+    
+    GenType=(tRVCGenStrTyp)N2kMsg.GetByte(Index);
+    PreCrank=N2kMsg.GetByte(Index);
+    MaxCrank=N2kMsg.GetByte(Index);
+    Stop=N2kMsg.GetByte(Index);
+    
+    return true;
+}
+
+
+
+
+
+
 
 
 //*****************************************************************************
@@ -373,8 +524,10 @@ void SetRVCPGN1FFC7(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, ui
     N2kMsg.AddByte(flag);                    
 }
 
+
 bool ParseRVCPGN1FFC7(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &CVdc, uint16_t &CAdc, uint8_t &PerMax,
                             tRVCBatChrgMode &State, bool &EnableAtPO, bool &AutoRechg, tRVCChrgForceChrg &ForcedChrg){                           
+  if (N2kMsg.PGN!=0x1FFC7) return false;
 
   int     Index=0;
   uint8_t flag;
@@ -398,6 +551,9 @@ bool ParseRVCPGN1FFC7(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &In
 
 
 //*****************************************************************************
+// Charger Status2 - 1FEA3h  
+void SetRVCPGN1FEA3(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t ChrgInst, uint8_t DCInst, uint8_t DevPri, uint16_t Vdc, uint16_t Adc, uint8_t Temp) {
+    N2kMsg.SetPGN(0x1FEA3);
     N2kMsg.Priority=6;
     N2kMsg.AddByte((ChrgInst & 0x0F) | ChrgType<<4);
     N2kMsg.AddByte(DCInst);
@@ -407,6 +563,8 @@ bool ParseRVCPGN1FFC7(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &In
     N2kMsg.AddByte(Temp);
 }
 
+bool ParseRVCPGN1FEA3(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &ChrgInst, uint8_t &DCInst, uint8_t &DevPri, uint16_t &Vdc, uint16_t &Adc, uint8_t &Temp) {
+  if (N2kMsg.PGN!=0x1FEA3) return false;
 
   int Index=0;
   uint8_t flag;
@@ -922,12 +1080,14 @@ void SetISOPGN1FECA(tN2kMsg &N2kMsg, bool On, bool Active, bool Red, bool Yellow
 
 }
 
+bool ParseISOPGN1FECA(tN2kMsg &N2kMsg, bool &On, bool &Active, bool &Red, bool &Yellow, uint8_t &DSA,
                     uint32_t &SPN, tISOFMIType &FMI, uint8_t &Count, uint8_t &DSA_ext, uint8_t &Bank){
    if (N2kMsg.PGN!=0x1FECA) return false;
 
   int     Index=0;
   uint8_t flag, part;
   
+                        
   flag=N2kMsg.GetByte(Index);
   DSA=N2kMsg.GetByte(Index);
   SPN=N2kMsg.GetByte(Index);
