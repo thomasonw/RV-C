@@ -107,6 +107,42 @@ enum tRVCBatType  {
                             RVCDCbt_VD02=14,
                             RVCDCbt_Unknown=0x0F        /* Battery Type is a 4-bit field - all 1's indicated undefined value in J1939 CAN standard) */
                           };
+enum  tRVCGenStatus {
+                            RVCGst_Stopped = 0,
+                            RVCGst_PreHeat = 1,
+                            RVCGst_Chanking = 2,
+                            RVCGst_Running = 3,
+                            RVCGst_Priming = 4,
+                            RVCGst_Fault = 5,
+                            RVCGst_EngOnly = 6,         /* Engine running, Geneartor head disabled */
+                            RVCGst_TestMode = 7,
+                            RVCGst_VoltAdjMode = 8,
+                            RVCGst_FaltBypass = 9,
+                            RVCGst_ConfigMode = 10                            
+                          }; 
+ 
+ 
+enum tRVCGenCmd  {
+                            RVCGstStop=0,
+                            RVCGstStart=1,
+                            RVCGstManPrime=2,
+                            RVCGstManPreht=3,
+                            RVCGstStartQuiet=4,         /* Start in special 'Quite Mode' if Generator supports it */
+                            RVCGst_Unknown=0xFF      
+                          };
+         
+         
+   
+enum tRVCGenStrTyp  {					                /*  Details of generator Starter configuration.  Ref RV-C for more details */
+                            RVCGstStRCI=1,		        /*  Run/Crank input 	     			        */
+                            RVCGstStCGSI=2,		        /*  Crank/Glow & Stop inputs 			        */
+                            RVCGstStPSPS=3,		        /*  Preheat/Start input and Prime/Stop 		    */
+                            RVCGstStSIO=4,		        /*  Single On/Off input 			            */
+                            RVCGstStCGCA=5,		        /*  Glow, Start input with Amp Shunt monitoring */
+                            RVCGstSt_Unknown=0xFF 
+                          };
+         
+                                          
                           
   
  enum tRVCChrgType  {                                   /* PROPOSED EXTENSION - FOR INSTANCE TYPE CLASSIFCAITON ON CHARGER DGNs */
@@ -385,6 +421,116 @@ inline bool ParseRVCDCDisconnectCommand(const tN2kMsg &N2kMsg, uint8_t &Instance
 
 
 
+
+//*****************************************************************************
+// Generator Status 1 - 1FFDCh
+// Input:
+//  - Status                        Stopped, Started, Running, etc.
+//  - Engine Runtime                Total minutes logged on engine
+//  - Engine Load                   Current engine load % vs total capacity
+//  - Start battery voltage
+// Output:
+//  - N2kMsg                        RV_C message ready to be send.
+void SetRVCPGN1FFDC(tN2kMsg &N2kMsg, tRVCGenStatus Status, uint32_t Minutes, uint8_t Load, uint16_t SBVdc);
+inline void SetRVCGeneratorStatus1(tN2kMsg &N2kMsg, tRVCGenStatus Status, uint32_t Minutes, uint8_t Load, uint16_t SBVdc) {
+  SetRVCPGN1FFDC(N2kMsg,Status,Minutes,Load,SBVdc);
+}
+
+bool ParseRVCPGN1FFDC(const tN2kMsg &N2kMsg, tRVCGenStatus &Status, uint32_t &Minutes, uint8_t &Load, uint16_t &SBVdc);
+inline bool ParseRVCGeneratorStatus1(const tN2kMsg &N2kMsg, tRVCGenStatus &Status, uint32_t &Minutes, uint8_t &Load, uint16_t &SBVdc) {
+  return ParseRVCPGN1FFDC(N2kMsg,Status,Minutes,Load,SBVdc);                   
+}
+
+
+
+//*****************************************************************************
+// Generator Status 2 - 1FFDBh
+// Input:
+//  - Overtemp Switch active
+//  - Low Oil Pressure swtich active
+//  - Low Oil level swtich active
+//  - Caution Light
+//  - Tempeture                     -40..210 in deg-C, in 1C steps
+//  - Oil Pressure                  0..1000 kPa in 4Pa steps (0..145.04PSI)
+//  - RPM                           0..8191RPM in 0.125 RPM steps
+//  - Fuel Rate                     0..3212.5 LPH in 0.05lph steps
+// Output:
+//  - N2kMsg                        RV_C message ready to be send.
+
+void SetRVCPGN1FFDB(tN2kMsg &N2kMsg, bool OvrTemp, bool LowOP, bool LowOL, bool CautLght, uint8_t EngTemp, uint16_t RPM, uint16_t FFlow);
+inline void SetRVCGeneratorStatus2(tN2kMsg &N2kMsg, bool OvrTemp, bool LowOP, bool LowOL, bool CautLght, uint8_t EngTemp, uint16_t RPM, uint16_t FFlow) {
+  SetRVCPGN1FFDB(N2kMsg,OvrTemp,LowOP,LowOL,CautLght,EngTemp,RPM,FFlow);
+}
+
+bool ParseRVCPGN1FFDB(const tN2kMsg &N2kMsg, bool &OvrTemp, bool &LowOP, bool &LowOL, bool &CautLght, uint8_t &EngTemp, uint16_t &RPM, uint16_t &FFlow);
+inline bool ParseRVCGeneratorStatus2(const tN2kMsg &N2kMsg, bool &OvrTemp, bool &LowOP, bool &LowOL, bool &CautLght, uint8_t &EngTemp, uint16_t &RPM, uint16_t &FFlow) {
+  return ParseRVCPGN1FFDB(N2kMsg,OvrTemp,LowOP,LowOL,CautLght,EngTemp,RPM,FFlow);                  
+}
+
+
+
+
+//*****************************************************************************
+// Generator Command  -  1FFDAh
+// Input:
+//  - Command                       Start, Stop, Prime, etc.
+// Output:
+//  - N2kMsg                        RV_C message ready to be send.
+void SetRVCPGN1FFDA(tN2kMsg &N2kMsg, uint8_t Command);
+inline void SetRVCGeneratorCommand(tN2kMsg &N2kMsg, uint8_t Command) {
+  SetRVCPGN1FFDA(N2kMsg,Command);
+}
+
+bool ParseRVCPGN1FFDA(const tN2kMsg &N2kMsg, uint8_t &Command);
+inline bool ParseRVCGeneratorCommand(const tN2kMsg &N2kMsg, uint8_t &Command) {
+  return ParseRVCPGN1FFDA(N2kMsg,Command);                  
+}
+
+
+
+//*****************************************************************************
+// Generator Starter Configuration  -  1FFD9h
+// Input:
+//  - Generator Type                Method for how Start/Stop is controlled
+//  - Generator pre-crank time      0..250 Preheat time, in seconds 
+//  - Generator max crank time      0..250 Manimum time in seconds to engage starter in one attempt
+//  - Generator Stop Time           0.250  Time in seconds stop-signal is active to assure engine is stopped.                        Start, Stop, Prime, etc.
+// Output:
+//  - N2kMsg                        RV_C message ready to be send.
+void SetRVCPGN1FFD9(tN2kMsg &N2kMsg, tRVCGenStrTyp GenType, uint8_t PreCrank, uint8_t MaxCrank, uint8_t Stop);
+inline void SetRVCGeneratorStarterConfig(tN2kMsg &N2kMsg, tRVCGenStrTyp GenType, uint8_t PreCrank, uint8_t MaxCrank, uint8_t Stop) {
+  SetRVCPGN1FFD9(N2kMsg,GenType,PreCrank,MaxCrank,Stop);
+}
+
+bool ParseRVCPGN1FFD9(const tN2kMsg &N2kMsg, tRVCGenStrTyp &GenType, uint8_t &PreCrank, uint8_t &MaxCrank, uint8_t &Stop);
+inline bool ParseRVCGeneratorStarterConfig(const tN2kMsg &N2kMsg, tRVCGenStrTyp &GenType, uint8_t &PreCrank, uint8_t &MaxCrank, uint8_t &Stop) {
+  return ParseRVCPGN1FFD9(N2kMsg,GenType,PreCrank,MaxCrank,Stop);                  
+}
+
+
+
+
+//*****************************************************************************
+// Generator Starter Configuration Command -  1FFD8h
+// Input:
+//  - Generator Type                Method for how Start/Stop is controlled
+//  - Generator pre-crank time      0..250 Preheat time, in seconds 
+//  - Generator max crank time      0..250 Manimum time in seconds to engage starter in one attempt
+//  - Generator Stop Time           0.250  Time in seconds stop-signal is active to assure engine is stopped.                        Start, Stop, Prime, etc.
+// Output:
+//  - N2kMsg                        RV_C message ready to be send.
+void SetRVCPGN1FFD9(tN2kMsg &N2kMsg, tRVCGenStrTyp GenType, uint8_t PreCrank, uint8_t MaxCrank, uint8_t Stop);
+inline void SetRVCGeneratorStarterConfigCommand(tN2kMsg &N2kMsg, tRVCGenStrTyp GenType, uint8_t PreCrank, uint8_t MaxCrank, uint8_t Stop) {
+  SetRVCPGN1FFD9(N2kMsg,GenType,PreCrank,MaxCrank,Stop);
+}
+
+bool ParseRVCPGN1FFD9(const tN2kMsg &N2kMsg, tRVCGenStrTyp &GenType, uint8_t &PreCrank, uint8_t &MaxCrank, uint8_t &Stop);
+inline bool ParseRVCGeneratorStarterConfigCommand(const tN2kMsg &N2kMsg, tRVCGenStrTyp &GenType, uint8_t &PreCrank, uint8_t &MaxCrank, uint8_t &Stop) {
+  return ParseRVCPGN1FFD9(N2kMsg,GenType,PreCrank,MaxCrank,Stop);                  
+}
+
+
+                         
 
 
 
