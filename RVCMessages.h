@@ -108,17 +108,17 @@ enum tRVCBatType  {
                             RVCDCbt_Unknown=0x0F        /* Battery Type is a 4-bit field - all 1's indicated undefined value in J1939 CAN standard) */
                           };
 enum  tRVCGenStatus {
-                            RVCGst_Stopped = 0,
-                            RVCGst_PreHeat = 1,
-                            RVCGst_Chanking = 2,
-                            RVCGst_Running = 3,
-                            RVCGst_Priming = 4,
-                            RVCGst_Fault = 5,
-                            RVCGst_EngOnly = 6,         /* Engine running, Geneartor head disabled */
-                            RVCGst_TestMode = 7,
-                            RVCGst_VoltAdjMode = 8,
-                            RVCGst_FaltBypass = 9,
-                            RVCGst_ConfigMode = 10                            
+                            RVCGst_Stopped=0,
+                            RVCGst_PreHeat=1,
+                            RVCGst_Chanking=2,
+                            RVCGst_Running=3,
+                            RVCGst_Priming=4,
+                            RVCGst_Fault=5,
+                            RVCGst_EngOnly=6,           /* Engine running, Geneartor head disabled */
+                            RVCGst_TestMode=7,
+                            RVCGst_VoltAdjMode=8,
+                            RVCGst_FaltBypass=9,
+                            RVCGst_ConfigMode=10                            
                           }; 
  
  
@@ -128,6 +128,8 @@ enum tRVCGenCmd  {
                             RVCGstManPrime=2,
                             RVCGstManPreht=3,
                             RVCGstStartQuiet=4,         /* Start in special 'Quite Mode' if Generator supports it */
+                            RVCGstEnableAuxLoad=100,    /* Watermaker, Air Compressor, AC unit, etc.. */
+                            RVCGstDisableAuxLoad=101,
                             RVCGst_Unknown=0xFF      
                           };
          
@@ -476,13 +478,13 @@ inline bool ParseRVCGeneratorStatus2(const tN2kMsg &N2kMsg, bool &OvrTemp, bool 
 //  - Command                       Start, Stop, Prime, etc.
 // Output:
 //  - N2kMsg                        RV_C message ready to be send.
-void SetRVCPGN1FFDA(tN2kMsg &N2kMsg, uint8_t Command);
-inline void SetRVCGeneratorCommand(tN2kMsg &N2kMsg, uint8_t Command) {
+void SetRVCPGN1FFDA(tN2kMsg &N2kMsg, tRVCGenCmd Command);
+inline void SetRVCGeneratorCommand(tN2kMsg &N2kMsg, tRVCGenCmd Command) {
   SetRVCPGN1FFDA(N2kMsg,Command);
 }
 
-bool ParseRVCPGN1FFDA(const tN2kMsg &N2kMsg, uint8_t &Command);
-inline bool ParseRVCGeneratorCommand(const tN2kMsg &N2kMsg, uint8_t &Command) {
+bool ParseRVCPGN1FFDA(const tN2kMsg &N2kMsg, tRVCGenCmd &Command);
+inline bool ParseRVCGeneratorCommand(const tN2kMsg &N2kMsg, tRVCGenCmd &Command) {
   return ParseRVCPGN1FFDA(N2kMsg,Command);                  
 }
 

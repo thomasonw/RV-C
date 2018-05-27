@@ -421,20 +421,20 @@ bool ParseRVCPGN1FFDB(const tN2kMsg &N2kMsg, bool &OvrTemp, bool &LowOP, bool &L
 
 //*****************************************************************************
 // Generator Command  -  1FFDAh
-void SetRVCPGN1FFDA(tN2kMsg &N2kMsg, uint8_t Command) {
+void SetRVCPGN1FFDA(tN2kMsg &N2kMsg, tRVCGenCmd Command) {
     N2kMsg.SetPGN(0x1FFDA);
     N2kMsg.Priority=6;
     
-    N2kMsg.AddByte(Command);    
+    N2kMsg.AddByte((uint8_t)Command);    
     
 }
 
-bool ParseRVCPGN1FFDA(const tN2kMsg &N2kMsg, uint8_t &Command) {
+bool ParseRVCPGN1FFDA(const tN2kMsg &N2kMsg, tRVCGenCmd &Command) {
     if (N2kMsg.PGN!=0x1FFDA) return false;
 
     int     Index=0;   
     
-    Command=N2kMsg.GetByte(Index);
+    Command=(tRVCGenCmd)N2kMsg.GetByte(Index);
 
     return true;
 }
