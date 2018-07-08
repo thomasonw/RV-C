@@ -24,11 +24,11 @@ Every attempt has been made to align OSEnergy with the RV-C specification, howev
 
 <br>
 
-Addition to the RV-C specification:  *Charger Status 2.*  
-It is currently enabled by reusing the retired PGN @ 1FF9Dh.   
+Addition to the RV-C specification:  *Charger Status 2.*    
+Scheduled for inclusion in next revision using PGN #1FEA3h.   
 
 ```  
-// Charger Status2 - 1FF9Dh  (PROPOSED, TEMP USING OLD BRIDGE_DGN_LIST DGN #)  
+// Charger Status2 - 1FEA3h 
 // Input:  
 //  - Instance              Instance of charger  
 //  - DC Source Instance    DC Instance (bus) ID associated with  
