@@ -1080,7 +1080,7 @@ void SetISOPGN1FECA(tN2kMsg &N2kMsg, bool On, bool Active, bool Red, bool Yellow
 
 }
 
-bool ParseISOPGN1FECA(tN2kMsg &N2kMsg, bool &On, bool &Active, bool &Red, bool &Yellow, uint8_t &DSA,
+bool ParseISOPGN1FECA(const tN2kMsg &N2kMsg, bool &On, bool &Active, bool &Red, bool &Yellow, uint8_t &DSA,
                     uint32_t &SPN, tISOFMIType &FMI, uint8_t &Count, uint8_t &DSA_ext, uint8_t &Bank){
    if (N2kMsg.PGN!=0x1FECA) return false;
 
