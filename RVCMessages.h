@@ -25,7 +25,7 @@
 //
 //
 //                  8/29/2016   Initial posting.  Contains a pending change to the current RV-C spec:
-//                      'Charger Status2' @ 1FEA3h  (PROPOSED, TEMP USING OLD BRIDGE_DGN_LIST DGN #)
+//                      'Charger Status2' @ 1FEA3h
 //
   
 

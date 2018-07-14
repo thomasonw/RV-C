@@ -1063,17 +1063,19 @@ void SetISOPGN1FECA(tN2kMsg &N2kMsg, bool On, bool Active, bool Red, bool Yellow
     
     uint8_t flag = 0x00;
     
-    if (On)      flag |= 0x01;
-    if (Active)  flag |= 0x01 << 2;
-    if (Red)     flag |= 0x01 << 4;
-    if (Yellow)  flag |= 0x01 << 6;
+    if (On)      flag |=  0x01;
+    if (Active)  flag |= (0x01 << 2);
+    if (Yellow)  flag |= (0x01 << 4);
+    if (Red)     flag |= (0x01 << 6);
  
     
     N2kMsg.SetPGN(0x1FECA);
     N2kMsg.Priority=6;
     N2kMsg.AddByte(flag);
     N2kMsg.AddByte(DSA);
-    N2kMsg.Add3ByteInt((int32_t) (SPN + (uint32_t)FMI)<<20);
+    N2kMsg.AddByte((uint8_t) (SPN >> 11));
+    N2kMsg.AddByte((uint8_t) (SPN >>  3));
+    N2kMsg.AddByte(((uint8_t)(SPN << 5)) | (FMI & 0x1F));
     N2kMsg.AddByte(Count | 0x80);
     N2kMsg.AddByte(DSA_ext);
     N2kMsg.AddByte(Bank | 0xF0); 
@@ -1086,24 +1088,25 @@ bool ParseISOPGN1FECA(const tN2kMsg &N2kMsg, bool &On, bool &Active, bool &Red, 
 
   int     Index=0;
   uint8_t flag, part;
-  
+ 
                         
   flag=N2kMsg.GetByte(Index);
-  DSA=N2kMsg.GetByte(Index);
-  SPN=N2kMsg.GetByte(Index);
-  SPN=N2kMsg.GetByte(Index)<<8;
+  DSA =N2kMsg.GetByte(Index);
+  SPN =N2kMsg.GetByte(Index)<<8;
+  SPN|=N2kMsg.GetByte(Index);
   part=N2kMsg.GetByte(Index);
   Count=N2kMsg.GetByte(Index) & 0x7F;
   DSA_ext=N2kMsg.GetByte(Index);
   Bank=N2kMsg.GetByte(Index)  & 0x0F;
   
-  FMI  = (tISOFMIType) (part>>4);
-  SPN += (uint32_t)(part & 0x0F) << 16;
-  
-  On      = (flag & 0x03   ) == 0x01;  
-  Active  = (flag & 0x03<<2) == 0x01<<2; 
-  Red     = (flag & 0x03<<4) == 0x01<<4; 
-  Yellow  = (flag & 0x03<<6) == 0x01<<6; 
+  FMI  = (tISOFMIType) (part & 0x1F);
+  SPN  = (SPN << 3) | (part >> 5);
+  SPN &= 0x7FFFF;                           // SPN is a 19 bit value     
+    
+  On      = (flag &  0x03    ) == 0x01;  
+  Active  = (flag & (0x03<<2)) == 0x01<<2; 
+  Yellow  = (flag & (0x03<<4)) == 0x01<<4; 
+  Red     = (flag & (0x03<<6)) == 0x01<<6; 
   
   return true;
 }
