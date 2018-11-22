@@ -285,11 +285,11 @@ bool ParseRVCPGN1FEC7(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri,
 
 //*****************************************************************************
 // DC Disconnect Status
-void SetRVCPGN1FED0(tN2kMsg &N2kMsg, uint8_t Instance, bool CirCon, bool RecDisCom, bool Bypassed) {
+void SetRVCPGN1FED0(tN2kMsg &N2kMsg, uint8_t Instance, bool Status, bool LastCom, bool Bypassed) {
     uint8_t  flag = 0xC0;               /* Unused bits must be set high */
 
-    if (CirCon)     flag |= 0x01;
-    if (!RecDisCom) flag |= 0x01<<2;
+    if (Status)     flag |= 0x01;
+    if (LastCom)    flag |= 0x01<<2;
     if (Bypassed)   flag |= 0x01<<4;
     
     N2kMsg.SetPGN(0x1FED0);
@@ -299,7 +299,7 @@ void SetRVCPGN1FED0(tN2kMsg &N2kMsg, uint8_t Instance, bool CirCon, bool RecDisC
 
 }
 
-bool ParseRVCPGN1FED0(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &CirCon, bool &RecDisCom, bool &Bypassed) {
+bool ParseRVCPGN1FED0(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &Status, bool &LastCom, bool &Bypassed) {
   if (N2kMsg.PGN!=0x1FED0) return false;
 
   int Index=0;
@@ -308,8 +308,8 @@ bool ParseRVCPGN1FED0(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &CirCon, bo
   Instance=N2kMsg.GetByte(Index);
   flag=N2kMsg.GetByte(Index);
      
-  CirCon     = (flag & 0x03   ) == 0x01;  
-  RecDisCom  = (flag & 0x03<<2) == 0x01<<2; 
+  Status     = (flag & 0x03   ) == 0x01;  
+  LastCom    = (flag & 0x03<<2) == 0x01<<2; 
   Bypassed   = (flag & 0x03<<4) == 0x01<<4; 
   
   return true;
@@ -321,10 +321,10 @@ bool ParseRVCPGN1FED0(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &CirCon, bo
 
 //*****************************************************************************
 // DC Disconnect Command  - 1FECFh
-void SetRVCPGN1FECF(tN2kMsg &N2kMsg, uint8_t Instance, bool Disconnect) {
+void SetRVCPGN1FECF(tN2kMsg &N2kMsg, uint8_t Instance, bool Command) {
     uint8_t  flag = 0xFC;               /* Unused bits must be set high */
 
-    if (Disconnect)  flag |= 0x01;
+    if (Command)  flag |= 0x01;
 
     
     N2kMsg.SetPGN(0x1FECF);
@@ -334,7 +334,7 @@ void SetRVCPGN1FECF(tN2kMsg &N2kMsg, uint8_t Instance, bool Disconnect) {
 
 }
 
-bool ParseRVCPGN1FECF(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &DisCmd) {
+bool ParseRVCPGN1FECF(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &Command) {
   if (N2kMsg.PGN!=0x1FECF) return false;
 
   int Index=0;
@@ -343,7 +343,7 @@ bool ParseRVCPGN1FECF(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &DisCmd) {
   Instance=N2kMsg.GetByte(Index);
   flag=N2kMsg.GetByte(Index);
     
-  DisCmd  = (flag & 0x03   ) == 0x01;  
+  Command  = (flag & 0x03 ) == 0x01;  
   
   return true;
 }

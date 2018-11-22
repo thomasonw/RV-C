@@ -381,20 +381,20 @@ inline bool ParseRVCDCSourceStatus6(const tN2kMsg &N2kMsg, uint8_t &Instance, ui
 // DC Disconnect Status - 1FED0h
 // Input:
 //  - Instance                      DC Instance (bus) ID.  
-//  - Circuit Connected             Is Circuit currently connected? 
-//  - Received Disconect Command    Was the last command received to disconnect?    
+//  - Status             	    Is Circuit currently connected? 
+//  - Last Command    		    What was the last command received? (TRUE = connect)   
 //  - Bypass Detected               Has an external bypass occurred? 
 // Output:
 //  - N2kMsg                        RV_C message ready to be send.
-void SetRVCPGN1FED0(tN2kMsg &N2kMsg, uint8_t Instance, bool CirCon, bool RecDisCom, bool Bypassed);
+void SetRVCPGN1FED0(tN2kMsg &N2kMsg, uint8_t Instance, bool Status, bool LastCom, bool Bypassed);
               
-inline void SetRVCDCDisconnectStatus(tN2kMsg &N2kMsg, uint8_t Instance, bool CirCon, bool RecDisCom, bool Bypassed) {
-  SetRVCPGN1FED0(N2kMsg,Instance, CirCon, RecDisCom, Bypassed);
+inline void SetRVCDCDisconnectStatus(tN2kMsg &N2kMsg, uint8_t Instance, bool Status, bool LastCom, bool Bypassed) {
+  SetRVCPGN1FED0(N2kMsg,Instance, Status, LastCom, Bypassed);
 }
 
-bool ParseRVCPGN1FED0(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &CirCon, bool &RecDisCom, bool &Bypassed);
-inline bool ParseRVCDCDisconnectStatus(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &CirCon, bool &RecDisCom, bool &Bypassed) {
-  return ParseRVCPGN1FED0(N2kMsg,Instance, CirCon, RecDisCom, Bypassed);                   
+bool ParseRVCPGN1FED0(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &Status, bool &LastCom, bool &Bypassed);
+inline bool ParseRVCDCDisconnectStatus(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &Status, bool &LastCom, bool &Bypassed) {
+  return ParseRVCPGN1FED0(N2kMsg,Instance, Status, LastCom, Bypassed);                   
 }
 
 
@@ -406,18 +406,18 @@ inline bool ParseRVCDCDisconnectStatus(const tN2kMsg &N2kMsg, uint8_t &Instance,
 // DC Disconnect Command - 1FECFh
 // Input:
 //  - Instance              DC Instance (bus) ID.  
-//  - DisCmd                Command to Disconnect (False = command to connect)
+//  - Command               Command  (TRUE = command to connect)
 // Output:
 //  - N2kMsg                RV_C message ready to be send.
-void SetRVCPGN1FECF(tN2kMsg &N2kMsg, uint8_t Instance, bool DisCmd);
+void SetRVCPGN1FECF(tN2kMsg &N2kMsg, uint8_t Instance, bool Command);
               
-inline void SetRVCDCDisconnectCommand(tN2kMsg &N2kMsg, uint8_t Instance, bool DisCmd) {
-  SetRVCPGN1FECF(N2kMsg,Instance,DisCmd);
+inline void SetRVCDCDisconnectCommand(tN2kMsg &N2kMsg, uint8_t Instance, bool Command) {
+  SetRVCPGN1FECF(N2kMsg,Instance,Command);
 }
 
-bool ParseRVCPGN1FECF(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &DisCmd);
-inline bool ParseRVCDCDisconnectCommand(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &DisCmd) {
-  return ParseRVCPGN1FECF(N2kMsg,Instance,DisCmd);                   
+bool ParseRVCPGN1FECF(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &Command);
+inline bool ParseRVCDCDisconnectCommand(const tN2kMsg &N2kMsg, uint8_t &Instance, bool &Command) {
+  return ParseRVCPGN1FECF(N2kMsg,Instance,Command);                   
 }
 
 
