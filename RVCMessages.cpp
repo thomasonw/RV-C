@@ -1,7 +1,7 @@
 //  RVCMessages.cpp
 //
 //
-//      Copyright (c) 2016, 2018 by William A. Thomason.      http://arduinoalternatorregulator.blogspot.com/
+//      Copyright (c) 2016, 2018, 2020 by William A. Thomason.http://arduinoalternatorregulator.blogspot.com/
 //                                                            http://smartdcgenerator.blogspot.com/
 //                                                            https://github.com/thomasonw/RV-C
 //                                                        
@@ -115,25 +115,26 @@ bool ParseRVCPGN1FFFD(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri,
 //*****************************************************************************
 // DC Source Status 2
 void SetRVCPGN1FFFC(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, 
-                      int16_t Temp, uint8_t SOC, uint16_t TR) {
+                      uint16_t Temp, uint8_t SOC, uint16_t TR) {
     N2kMsg.SetPGN(0x1FFFC);
     N2kMsg.Priority=6;
     N2kMsg.AddByte(Instance);
     N2kMsg.AddByte(DevPri);
-    N2kMsg.Add2ByteInt(Temp);
+    N2kMsg.Add2ByteUInt(Temp);
     N2kMsg.AddByte(SOC);
     N2kMsg.Add2ByteUInt(TR);
+    N2kMsg.AddByte(0xFF);
 }
 
 bool ParseRVCPGN1FFFC(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, 
-                       int16_t &Temp, uint8_t &SOC, uint16_t &TR) {
+                       uint16_t &Temp, uint8_t &SOC, uint16_t &TR) {
   if (N2kMsg.PGN!=0x1FFFC) return false;
 
   int Index=0;
   
   Instance=N2kMsg.GetByte(Index);
   DevPri=N2kMsg.GetByte(Index);
-  Temp=N2kMsg.Get2ByteInt(Index);
+  Temp=N2kMsg.Get2ByteUInt(Index);
   SOC=N2kMsg.GetByte(Index);
   TR=N2kMsg.Get2ByteUInt(Index);
   
@@ -275,6 +276,54 @@ bool ParseRVCPGN1FEC7(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri,
   HVld   = (flag & 0x03<<2) == 0x01<<2; 
   LVls   = (flag & 0x03<<4) == 0x01<<4; 
   LVld   = (flag & 0x03<<6) == 0x01<<6; 
+  
+  return true;
+}
+
+
+
+
+
+
+
+//*****************************************************************************
+// DC Source Status 11
+void SetRVCPGN1FEA5(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, bool PwrOnOff, bool ChrgOnOff, bool ChrgDet, bool ResvStat, uint16_t BatAHCap, uint16_t DCPower) {
+    uint8_t  flag = 0;
+
+    if (PwrOnOff) flag |= 0x01;
+    if (ChrgOnOff) flag |= 0x01<<2;
+    if (ChrgDet) flag |= 0x01<<4;
+    if (ResvStat) flag |= 0x01<<6;
+    
+    N2kMsg.SetPGN(0x1FEA5);
+    N2kMsg.Priority=6;
+    N2kMsg.AddByte(Instance);
+    N2kMsg.AddByte(DevPri);
+    N2kMsg.AddByte(flag);
+    N2kMsg.Add2ByteUInt(BatAHCap);
+    N2kMsg.Add2ByteUInt(DCPower);
+     N2kMsg.AddByte(0xff);
+
+}
+
+bool ParseRVCPGN1FEA5(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, bool &PwrOnOff, bool &ChrgOnOff, bool &ChrgDet, bool &ResvStat, uint16_t &BatAHCap, uint16_t &DCPower) {
+  if (N2kMsg.PGN!=0x1FEA5) return false;
+
+  int Index=0;
+  uint8_t  flag;
+  
+  Instance=N2kMsg.GetByte(Index);
+  DevPri=N2kMsg.GetByte(Index);
+  flag=N2kMsg.GetByte(Index);
+    
+  PwrOnOff   = (flag & 0x03   ) == 0x01;  
+  ChrgOnOff  = (flag & 0x03<<2) == 0x01<<2; 
+  ChrgDet    = (flag & 0x03<<4) == 0x01<<4; 
+  ResvStat   = (flag & 0x03<<6) == 0x01<<6; 
+  
+  BatAHCap=N2kMsg.Get2ByteUInt(Index);
+  DCPower =N2kMsg.Get2ByteUInt(Index);
   
   return true;
 }
@@ -599,11 +648,11 @@ void SetRVCPGN1FFC5(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, tR
     N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.AddByte((uint8_t)ChrgStat);
     N2kMsg.AddByte(flag);  
-    //N2kMsg.AddByte(0Xff);
-    //N2kMsg.AddByte(0Xff);
-    //N2kMsg.AddByte(0Xff);
-    //N2kMsg.AddByte(0Xff);
-    //N2kMsg.AddByte(0Xff);    
+    N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);    
 }
 
 bool ParseRVCPGN1FFC5(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, tRVCChrgStatus &ChrgStat, 
@@ -745,7 +794,7 @@ void SetRVCPGN1FEBF(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, ui
     N2kMsg.Add2ByteUInt(BulkT);   
     N2kMsg.Add2ByteUInt(AbsorbT);   
     N2kMsg.Add2ByteUInt(FloatT);  
-    //N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
 }
 
 bool ParseRVCPGN1FEBF(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &BulkT, uint16_t &AbsorbT, uint16_t &FloatT){
@@ -825,7 +874,7 @@ void SetRVCPGN1FF95(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, ui
     N2kMsg.AddByte(ShorBr);
     N2kMsg.AddByte(DefBatTemp);
     N2kMsg.Add2ByteUInt(RchgVolt); 
-    //N2kMsg.AddByte(0Xff);    
+    N2kMsg.AddByte(0Xff);    
 }
 
 bool ParseRVCPGN1FF95(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxShore, uint8_t &ShorBr, uint8_t &DefBatTemp, uint16_t &RchgVolt){
@@ -889,7 +938,7 @@ void SetRVCPGN1FEBE(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, ui
     N2kMsg.Add2ByteUInt(BulkT);   
     N2kMsg.Add2ByteUInt(AbsorbT);   
     N2kMsg.Add2ByteUInt(FloatT);  
-    //N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
 }
 
 bool ParseRVCPGN1FEBE(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &BulkT, uint16_t &AbsorbT, uint16_t &FloatT){
@@ -923,10 +972,10 @@ void SetRVCPGN1FF99(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, ui
     N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.Add2ByteUInt(Time);   
     N2kMsg.AddByte(flag);
-    //N2kMsg.AddByte(0Xff);
-    //N2kMsg.AddByte(0Xff);
-    //N2kMsg.AddByte(0Xff);
-    //N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
 }
 
 bool ParseRVCPGN1FF99(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &Time, bool &PreChrg){
@@ -961,9 +1010,9 @@ void SetRVCPGN1FF98(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, ui
     N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.Add2ByteUInt(Volts);   
     N2kMsg.Add2ByteUInt(Time);   
-    //N2kMsg.AddByte(0Xff);
-    //N2kMsg.AddByte(0Xff);
-    //N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
 }
 
 bool ParseRVCPGN1FF98(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &Volts, uint16_t &Time){
@@ -995,9 +1044,9 @@ void SetRVCPGN1FF97(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, ui
     N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.Add2ByteUInt(Volts);   
     N2kMsg.Add2ByteUInt(Time);   
-    //N2kMsg.AddByte(0Xff);
-    //N2kMsg.AddByte(0Xff);
-    //N2kMsg.AddByte(0Xff);    
+    N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);
+    N2kMsg.AddByte(0Xff);    
 }
 
 bool ParseRVCPGN1FF97(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint16_t &Volts, uint16_t &Time){
