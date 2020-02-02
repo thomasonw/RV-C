@@ -674,18 +674,19 @@ bool ParseRVCPGN1FFC6(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &In
 
 //*****************************************************************************
 // Charger Configuration Status2 - 1FF96h
-void SetRVCPGN1FF96(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint8_t PerMaxAmps, uint8_t PerMaxShore, uint8_t ShorBr, uint8_t DefBatTemp, uint16_t RchgVolt){
+void SetRVCPGN1FF96(tN2kMsg &N2kMsg, tRVCChrgType ChrgType, uint8_t Instance, uint8_t PerMaxAmps, uint8_t PerMaxBank, uint8_t ShorBr, uint8_t DefBatTemp, uint16_t RchgVolt){
     N2kMsg.SetPGN(0x1FF96);
     N2kMsg.Priority=6;
     N2kMsg.AddByte((Instance & 0x0F) | ChrgType<<4);
     N2kMsg.AddByte(PerMaxAmps);
-    N2kMsg.AddByte(PerMaxShore);
+    N2kMsg.AddByte(PerMaxBank);
+    N2kMsg.AddByte(ShorBr);
     N2kMsg.AddByte(DefBatTemp); 
     N2kMsg.Add2ByteUInt(RchgVolt); 
-    //N2kMsg.Add2ByteUInt(0xFF);    
+    N2kMsg.AddByte(0xFF);    
 }
 
-bool ParseRVCPGN1FF96(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxShore, uint8_t &DefBatTemp, uint16_t &RchgVolt) {
+bool ParseRVCPGN1FF96(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxBank, uint8_t &ShorBr, uint8_t &DefBatTemp, uint16_t &RchgVolt) {
   if (N2kMsg.PGN!=0x1FF96) return false;
 
   int     Index=0;
@@ -695,12 +696,14 @@ bool ParseRVCPGN1FF96(const tN2kMsg &N2kMsg, tRVCChrgType &ChrgType, uint8_t &In
   Instance = flag & 0x0F;
   ChrgType =(tRVCChrgType)( flag>>4);
   PerMaxAmps=N2kMsg.GetByte(Index);
-  PerMaxShore=N2kMsg.GetByte(Index);
+  PerMaxBank=N2kMsg.GetByte(Index);
+  ShorBr=N2kMsg.GetByte(Index);
   DefBatTemp=N2kMsg.GetByte(Index);
   RchgVolt=N2kMsg.Get2ByteUInt(Index);
   
   return true;
 }
+
 
 
 //*****************************************************************************
