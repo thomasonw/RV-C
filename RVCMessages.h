@@ -706,7 +706,7 @@ inline void SetRVCChargerConfigStatus2(tN2kMsg &N2kMsg, tRVCChrgType Type, uint8
 }
 
 bool ParseRVCPGN1FF96(const tN2kMsg &N2kMsg, tRVCChrgType &Type, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxShore, uint8_t &ShorBr, uint8_t &DefBatTemp, uint16_t &RchgVolt);
-inline bool ParseRVCChargerConfigStatus2(const tN2kMsg &N2kMsg, tRVCChrgType &Type, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &ShorBr, uint8_t &PerMaxShore, uint8_t &DefBatTemp, uint16_t &RchgVolt) {
+inline bool ParseRVCChargerConfigStatus2(const tN2kMsg &N2kMsg, tRVCChrgType &Type, uint8_t &Instance, uint8_t &PerMaxAmps, uint8_t &PerMaxShore, uint8_t &ShorBr, uint8_t &DefBatTemp, uint16_t &RchgVolt) {
   return ParseRVCPGN1FF96(N2kMsg,Type,Instance,PerMaxAmps,PerMaxShore,ShorBr,DefBatTemp,RchgVolt);                   
 }
 
