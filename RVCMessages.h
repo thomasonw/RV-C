@@ -1,7 +1,7 @@
 //      RVCMessages.h
 //
 //
-//      Copyright (c) 2016, 2018 by William A. Thomason.      http://arduinoalternatorregulator.blogspot.com/
+//      Copyright (c) 2016, 2018, 2020 by William A. Thomason.http://arduinoalternatorregulator.blogspot.com/
 //                                                            http://smartdcgenerator.blogspot.com/
 //                                                            https://github.com/thomasonw/RV-C
 //                                                        
@@ -40,7 +40,7 @@
 
 enum tRVCBatChrgMode  {
                             RVCDCbcm_Undefined=0,
-                            RVCDCbcm_Disabled=1,
+                            RVCDCbcm_Disabled=1,        // AKA, Do Not Charge
                             RVCDCbcm_Bulk=2,
                             RVCDCbcm_Absorption=3,
                             RVCDCbcm_Overcharge=4,
@@ -254,19 +254,19 @@ inline bool ParseRVCDCSourceStatus1(const tN2kMsg &N2kMsg, uint8_t &Instance, ui
 // Input:
 //  - Instance              DC Instance (bus) ID.  
 //  - Device Priority       Relative ranking of DC Source
-//  - Source Temperature     -273 to 1735 Deg-C  in 0.03125c steps
+//  - Source Temperature     -273 to 1735 Deg-C  in 0.03125c steps (273 offset)
 //  - State of Charge       Batteries: % SOC;  DC Charging sources:  Current % output.
 //  - Time Remaining        Estimated number of minutes until SOC reaches 0% 
 // Output:
 //  - N2kMsg                RV_C message ready to be send.
-void SetRVCPGN1FFFC(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, int16_t Temp, uint8_t SOC, uint16_t TR);
+void SetRVCPGN1FFFC(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, uint16_t Temp, uint8_t SOC, uint16_t TR);
               
-inline void SetRVCDCSourceStatus2(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, int16_t Temp, uint8_t SOC, uint16_t TR) {
+inline void SetRVCDCSourceStatus2(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, uint16_t Temp, uint8_t SOC, uint16_t TR) {
   SetRVCPGN1FFFC(N2kMsg,Instance, DevPri, Temp, SOC, TR);
 }
 
-bool ParseRVCPGN1FFFC(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, int16_t &Temp, uint8_t &SOC, uint16_t &TR);
-inline bool ParseRVCDCSourceStatus2(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, int16_t &Temp, uint8_t &SOC, uint16_t &TR) {
+bool ParseRVCPGN1FFFC(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, uint16_t &Temp, uint8_t &SOC, uint16_t &TR);
+inline bool ParseRVCDCSourceStatus2(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, uint16_t &Temp, uint8_t &SOC, uint16_t &TR) {
   return ParseRVCPGN1FFFC(N2kMsg,Instance, DevPri, Temp, SOC, TR);                   
 }
 
@@ -377,12 +377,46 @@ inline bool ParseRVCDCSourceStatus6(const tN2kMsg &N2kMsg, uint8_t &Instance, ui
 
 
 
+
+
+
+//*****************************************************************************
+// DC Source Status 11 - 1FEA5h
+// Input:
+//  - Instance              DC Instance (bus) ID.  
+//  - Device Priority       Relative ranking of DC Source
+//  - PwrOnOff              Status of main Battery Switch / Contactor (TRUE = connected)
+//  - ChrgOnOff             Status of Charge Bus switch (TRUE = connected)
+//  - ChrgDet               Has a charge source been detected?
+//  - ResvStat              Is battery running on its 'reserved capacity'?
+//  - BatAHCap              Battery capacity in Ah's
+//  - DCPower               Watts being received or delivered to/from battery  (as opposed to AMPs in DC_STATUS_1)
+// Output:
+//  - N2kMsg                RV_C message ready to be send.
+void SetRVCPGN1FEA5(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, bool PwrOnOff, bool ChrgOnOff, bool ChrgDet, bool ResvStat, uint16_t BatAHCap, uint16_t DCPower);
+              
+inline void SetRVCDCSourceStatus11(tN2kMsg &N2kMsg, uint8_t Instance, uint8_t DevPri, bool PwrOnOff, bool ChrgOnOff, bool ChrgDet, bool ResvStat, uint16_t BatAHCap, uint16_t DCPower) {
+  SetRVCPGN1FEA5(N2kMsg,Instance, DevPri, PwrOnOff, ChrgOnOff, ChrgDet, ResvStat, BatAHCap, DCPower);
+}
+
+bool ParseRVCPGN1FEA5(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri,  
+                      bool &PwrOnOff, bool &ChrgOnOff, bool &ChrgDet, bool &ResvStat, uint16_t &BatAHCap, uint16_t &DCPower);
+inline bool ParseRVCDCSourceStatus11(const tN2kMsg &N2kMsg, uint8_t &Instance, uint8_t &DevPri, bool &PwrOnOff, bool &ChrgOnOff, bool &ChrgDet, bool &ResvStat, uint16_t &BatAHCap, uint16_t &DCPower) {
+  return ParseRVCPGN1FEA5(N2kMsg,Instance, DevPri, PwrOnOff, ChrgOnOff, ChrgDet, ResvStat, BatAHCap, DCPower);                   
+}
+
+
+
+
+
+
+
 //*****************************************************************************
 // DC Disconnect Status - 1FED0h
 // Input:
 //  - Instance                      DC Instance (bus) ID.  
-//  - Status             	    Is Circuit currently connected? 
-//  - Last Command    		    What was the last command received? (TRUE = connect)   
+//  - Status             	        Is Circuit currently connected? 
+//  - Last Command    		        What was the last command received? (TRUE = connect)   
 //  - Bypass Detected               Has an external bypass occurred? 
 // Output:
 //  - N2kMsg                        RV_C message ready to be send.
