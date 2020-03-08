@@ -38,6 +38,17 @@
 
 
 
+enum tRVCTimeZone {
+	RVCTimeZone_GMT=0,
+	RVCTimeZone_EDT=4,
+	RVCTimeZone_EST=5,
+	RVCTimeZone_PDT=7,
+	RVCTimeZone_PST=8,
+	RVCTimeZone_WET=0,        // Western European Time
+	RVCTimeZone_CEST=22,      // Central European Summer Time
+	RVCTimeZone_SetZone=255,  // used in Set System Date and Time. All fields should be set to this value except Hour and Zone when setting timezone.
+};
+
 enum tRVCBatChrgMode  {
                             RVCDCbcm_Undefined=0,
                             RVCDCbcm_Disabled=1,        // AKA, Do Not Charge
@@ -224,6 +235,64 @@ inline bool ParseRVCRequestDGN (const tN2kMsg &N2kMsg, uint8_t &Dest, uint32_t &
 }
                       
 
+
+//*****************************************************************************
+// System Date and Time Status - 1FFFFh 
+// GPS-Based Date and Time Status - 1FEA0h
+// Set System Date and Time Command - 1FFFEh
+// Input:
+// - Year 		Precision=1Y, Offset=2000AD, range = 2000-2250
+// - Month		1-Jan, 2-Feb,...
+// - Date		Precision=1Day, range=0-31
+// - DayOfWeek		1-Sun, 2-Mon, ... 7-Sat
+// - Hour		Precision=1h, range=0-23, 0-12am, 12-12noon, 23=11om - in Local Time
+// - Minute		Precision=1min, range=0-59
+// - Second		Precission=1s, range=0-59
+// - TimeZone
+// Output:
+//  - N2kMsg                RV_C message ready to be send.
+
+// System Date and Time Status
+void SetRVCPGN1FFFF(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, uint8_t DayOfWeek, uint8_t Hour, uint8_t Minute, uint8_t Second, tRVCTimeZone TimeZone);
+inline void SetRVCSystemDateTimeStatus(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, uint8_t DayOfWeek, 
+							      uint8_t Hour, uint8_t Minute, uint8_t Second, tRVCTimeZone TimeZone) {
+  return SetRVCPGN1FFFF(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);
+}
+
+bool ParseRVCPGN1FFFF(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_t &Month, uint8_t &Date, uint8_t &DayOfWeek, 
+					     uint8_t &Hour, uint8_t &Minute, uint8_t &Second, tRVCTimeZone &TimeZone);
+inline bool ParseRVCSystemDateTimeStatus(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_t &Month, uint8_t &Date, uint8_t &DayOfWeek, 
+					 		        uint8_t &Hour, uint8_t &Minute, uint8_t &Second, tRVCTimeZone &TimeZone) {
+  return ParseRVCPGN1FFFF(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);    
+}
+
+// System Date and Time Command
+void SetRVCPGN1FFFE(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, uint8_t DayOfWeek, uint8_t Hour, uint8_t Minute, uint8_t Second, tRVCTimeZone TimeZone);
+inline void SetRVCSystemDateTimeCommand(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, uint8_t DayOfWeek, 
+							      uint8_t Hour, uint8_t Minute, uint8_t Second, tRVCTimeZone TimeZone) {
+  return SetRVCPGN1FFFE(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);
+}
+
+bool ParseRVCPGN1FFFE(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_t &Month, uint8_t &Date, uint8_t &DayOfWeek, 
+					     uint8_t &Hour, uint8_t &Minute, uint8_t &Second, tRVCTimeZone &TimeZone);
+inline bool ParseRVCSystemDateTimeCommand(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_t &Month, uint8_t &Date, uint8_t &DayOfWeek, 
+					 		        uint8_t &Hour, uint8_t &Minute, uint8_t &Second, tRVCTimeZone &TimeZone) {
+  return ParseRVCPGN1FFFE(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);    
+}
+
+// GPS-Based Date and Time Status
+void SetRVCPGN1FFA0(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, uint8_t DayOfWeek, uint8_t Hour, uint8_t Minute, uint8_t Second, tRVCTimeZone TimeZone);
+inline void SetRVCGPSDateTimeStatus(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, uint8_t DayOfWeek, 
+							      uint8_t Hour, uint8_t Minute, uint8_t Second, tRVCTimeZone TimeZone) {
+  return SetRVCPGN1FFA0(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);
+}
+
+bool ParseRVCPGN1FFA0(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_t &Month, uint8_t &Date, uint8_t &DayOfWeek, 
+					     uint8_t &Hour, uint8_t &Minute, uint8_t &Second, tRVCTimeZone &TimeZone);
+inline bool ParseRVCGPSDateTimeStatus(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_t &Month, uint8_t &Date, uint8_t &DayOfWeek, 
+					 		        uint8_t &Hour, uint8_t &Minute, uint8_t &Second, tRVCTimeZone &TimeZone) {
+  return ParseRVCPGN1FFA0(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);    
+}
 
 
 
@@ -578,7 +647,7 @@ inline bool ParseRVCGeneratorStarterConfigCommand(const tN2kMsg &N2kMsg, tRVCGen
 //  - Type                          AC Charger, DC Generators, Alternator, Solar, etc.  (PROPOSED EXTENSION)
 //  - Instance                      Instance of charger 0..13
 //  - Charge Voltage                0..3212.5v, in 50mV steps
-//  - Charge Current                -2M..+2MA, in 1mA steps (0x77359400 = 0A)
+//  - Charge Current                -1600..+1512.5 in 50mA steps (0x7D00 = 0A)
 //  - % max current
 //  - Operating State               (Bulk, float, etc)
 //  - Default PO state
