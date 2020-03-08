@@ -117,7 +117,7 @@ static bool _ParseRVCPGN1FFA0_1FFFF(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_
 
 void SetRVCPGN1FFFF(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, uint8_t DayOfWeek, uint8_t Hour, uint8_t Minute, uint8_t Second, tRVCTimeZone TimeZone) 
 {
-    N2kMsg.SetPGN(0xFFFF);
+    N2kMsg.SetPGN(0x1FFFF);
     N2kMsg.Priority=6;
     _SetRVCPNG1FFA0_1FFFF(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);
 }
@@ -125,7 +125,7 @@ void SetRVCPGN1FFFF(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, 
 bool ParseRVCPGN1FFFF(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_t &Month, uint8_t &Date, uint8_t &DayOfWeek, 
 					     uint8_t &Hour, uint8_t &Minute, uint8_t &Second, tRVCTimeZone &TimeZone)
 {
-    if (N2kMsg.PGN!=0xFFFF) 
+    if (N2kMsg.PGN!=0x1FFFF) 
 	return false;
     return _ParseRVCPGN1FFA0_1FFFF(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);
 }
@@ -135,7 +135,7 @@ bool ParseRVCPGN1FFFF(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_t &Month, uint
 // Set System Date and Time Command - 1FFFEh
 void SetRVCPGN1FFFE(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, uint8_t DayOfWeek, uint8_t Hour, uint8_t Minute, uint8_t Second, tRVCTimeZone TimeZone)
 {
-    N2kMsg.SetPGN(0xFFFF);
+    N2kMsg.SetPGN(0x1FFFF);
     N2kMsg.Priority=5;
     _SetRVCPNG1FFA0_1FFFF(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);
 }
@@ -143,7 +143,7 @@ void SetRVCPGN1FFFE(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, 
 bool ParseRVCPGN1FFFE(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_t &Month, uint8_t &Date, uint8_t &DayOfWeek, 
 					     uint8_t &Hour, uint8_t &Minute, uint8_t &Second, tRVCTimeZone &TimeZone)
 {
-    if (N2kMsg.PGN!=0xFFFE) 
+    if (N2kMsg.PGN!=0x1FFFE) 
 	return false;
     return _ParseRVCPGN1FFA0_1FFFF(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);
 }
@@ -152,7 +152,7 @@ bool ParseRVCPGN1FFFE(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_t &Month, uint
 // GPS-Based Date and Time Status - 1FEA0h
 void SetRVCPGN1FFA0(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, uint8_t DayOfWeek, uint8_t Hour, uint8_t Minute, uint8_t Second, tRVCTimeZone TimeZone) 
 {
-    N2kMsg.SetPGN(0xFFA0);
+    N2kMsg.SetPGN(0x1FFA0);
     N2kMsg.Priority=5;
     _SetRVCPNG1FFA0_1FFFF(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);
 }
@@ -160,7 +160,7 @@ void SetRVCPGN1FFA0(tN2kMsg &N2kMsg, uint8_t Year, uint8_t Month, uint8_t Date, 
 bool ParseRVCPGN1FFA0(const tN2kMsg &N2kMsg, uint8_t &Year, uint8_t &Month, uint8_t &Date, uint8_t &DayOfWeek, 
 					     uint8_t &Hour, uint8_t &Minute, uint8_t &Second, tRVCTimeZone &TimeZone)
 {
-    if (N2kMsg.PGN!=0xFFA0) 
+    if (N2kMsg.PGN!=0x1FFA0) 
 	return false;
     return _ParseRVCPGN1FFA0_1FFFF(N2kMsg, Year, Month, Date, DayOfWeek, Hour, Minute, Second, TimeZone);
 }
